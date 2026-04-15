@@ -117,7 +117,9 @@ uv sync
 
 ### Debugging
 
-**Remember to set line 16 in part1.yaml to your ethz group and username**.
+**Templates: remember to copy the template without the `.template` suffix, 
+and set the personal variables inside to yours.**
+E.g. set line 16 in `part1.yaml.template` the `<ETHZID>` placeholder to your ethz username.
 
 To show the labels of a node:
 
