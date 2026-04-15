@@ -13,7 +13,7 @@ spec:
   cloudConfig:
     gceServiceAccount: default
   cloudProvider: gce
-  configBase: gs://<your-gs-bucket>/part1.k8s.local
+  configBase: gs://cca-eth-2026-group-095-<ETHZID>/part1.k8s.local
   containerRuntime: containerd
   etcdClusters:
   - cpuRequest: 200m
