@@ -107,6 +107,14 @@ git merge master
 git push
 ```
 
+### Python Environment
+
+To set up the Python virtual environment and install dependencies, use [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv sync
+```
+
 ### Debugging
 
 **Remember to set line 16 in part1.yaml to your ethz group and username**.
@@ -137,3 +145,9 @@ tail -n 50 -f mcperf.log
 ```
 
 Notice that files for setup and logs are in `/home/ubuntu/` in the VM, not `/home/ethz-username/` as you might expect.
+
+Get datetime for logs:
+
+```bash
+date +%m%d-%H%M 
+```

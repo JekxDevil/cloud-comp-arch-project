@@ -30,7 +30,7 @@ fi
 
 
 echo "[INFO] Loading data into Memcached..."
-MCP_BIN="$HOME/memcache-perf/mcperf"
+MCP_BIN="/home/ubuntu/memcache-perf/mcperf"
 "$MCP_BIN" -s "$MEMCACHED_IP" --loadonly
 
 
