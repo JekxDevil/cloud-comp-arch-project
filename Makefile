@@ -7,6 +7,9 @@ delete-cluster:
 start-part-1:
 	./scripts/part-1.sh
 
+show-nodes:
+	kubectl get -o wide nodes
+
 # connect to client node. usage: make connect-to NODE=node-name
 connect-to:
 	gcloud compute ssh \

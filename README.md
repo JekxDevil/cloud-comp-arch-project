@@ -106,3 +106,34 @@ git switch feat
 git merge master
 git push
 ```
+
+### Debugging
+
+**Remember to set line 16 in part1.yaml to your ethz group and username**.
+
+To show the labels of a node:
+
+```bash
+kubectl get nodes --show-labels
+```
+
+Show the nodes with the label `cca-project-nodetype`:
+
+```bash
+kubectl get nodes -L cca-project-nodetype
+```
+
+Check logs in node for nodeUp service:
+
+```bash
+tail -n 50 /var/log/cloud-init-output.log
+systemctl status kops-configuration.service
+```
+
+Follow logs:
+
+```bash
+tail -n 50 -f mcperf.log
+```
+
+Notice that files for setup and logs are in `/home/ubuntu/` in the VM, not `/home/ethz-username/` as you might expect.
