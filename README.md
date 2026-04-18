@@ -115,6 +115,16 @@ To set up the Python virtual environment and install dependencies, use [uv](http
 uv sync
 ```
 
+### Development
+
+add the following to your `.bashrc` to set up the environment variables for development:
+
+```bash
+# cloud computing group
+export KOPS_STATE_STORE=gs://cca-eth-2026-group-095-jmorale/
+export PROJECT=`gcloud config get-value project`
+```
+
 ### Debugging
 
 **Templates: remember to copy the template without the `.template` suffix, 

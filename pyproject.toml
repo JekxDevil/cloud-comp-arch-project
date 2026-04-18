@@ -8,5 +8,6 @@ dependencies = [
     "matplotlib>=3.10.8",
     "notebook>=7.5.5",
     "numpy>=2.4.4",
+    "openevolve>=0.2.27",
     "pandas>=3.0.2",
 ]
