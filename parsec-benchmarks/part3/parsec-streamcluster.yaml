@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: parsec-streamcluster
+  labels:
+    name: parsec-streamcluster
+spec:
+  template:
+    spec:
+      containers:
+      - image: anakli/cca:parsec_streamcluster
+        name: parsec-streamcluster
+        imagePullPolicy: Always
+        command: ["/bin/sh"]
+        args: ["-c", "taskset -c 2-7 ./run -a run -S parsec -p streamcluster -i native -n 6"]
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "2Gi"
+          limits:
+            memory: "8Gi"
+      restartPolicy: Never
+      nodeSelector:
+        cca-project-nodetype: "node-a-8core"
