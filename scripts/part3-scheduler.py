@@ -4,9 +4,9 @@ Part 3 scheduler: co-schedules PARSEC batch jobs alongside memcached.
 
 Policy:
   - node-a-8core (e2-standard-8, 32 GB): memcached on cores 0-1; batch uses cores 2-7.
-      Jobs: freqmine → canneal → streamcluster → radix  (memory-heavy; need 32 GB node)
+      Jobs: radix → canneal → streamcluster  (~300s; radix/canneal need >3.6 GB RAM)
   - node-b-4core (n2d-highcpu-4, 3.6 GB): all 4 cores for batch.
-      Jobs: blackscholes → barnes → vips  (low-memory; run sequentially)
+      Jobs: blackscholes → freqmine → barnes → vips  (~277s; balanced with node-a)
 
 Both queues run in parallel to keep all resources busy at all times.
 Goal: minimize total makespan while keeping memcached P95 latency < 1 ms at 30K QPS.
@@ -23,14 +23,14 @@ from datetime import datetime
 # ---------------------------------------------------------------------------
 # Each entry is the YAML file path (relative to repo root).
 NODE_A_JOBS = [
-    "parsec-benchmarks/part3/parsec-freqmine.yaml",
+    "parsec-benchmarks/part3/parsec-radix.yaml",
     "parsec-benchmarks/part3/parsec-canneal.yaml",
     "parsec-benchmarks/part3/parsec-streamcluster.yaml",
-    "parsec-benchmarks/part3/parsec-radix.yaml",
 ]
 
 NODE_B_JOBS = [
     "parsec-benchmarks/part3/parsec-blackscholes.yaml",
+    "parsec-benchmarks/part3/parsec-freqmine.yaml",
     "parsec-benchmarks/part3/parsec-barnes.yaml",
     "parsec-benchmarks/part3/parsec-vips.yaml",
 ]
@@ -46,7 +46,7 @@ JOB_NAMES = {
     "parsec-benchmarks/part3/parsec-vips.yaml":          "parsec-vips",
 }
 
-POLL_INTERVAL = 10  # seconds between completion checks
+POLL_INTERVAL = 3  # seconds between completion checks
 
 
 def log(msg: str) -> None:
@@ -128,8 +128,8 @@ def main() -> None:
     log("=" * 60)
     log("Part 3 Scheduler starting")
     log("Policy summary:")
-    log("  node-a-8core: freqmine → canneal → streamcluster → radix  (cores 2-7)")
-    log("  node-b-4core: blackscholes → barnes → vips (cores 0-3)")
+    log("  node-a-8core: radix → canneal → streamcluster  (cores 2-5/2-7, ~300s)")
+    log("  node-b-4core: blackscholes → freqmine → barnes → vips  (cores 0-3, ~277s)")
     log("  memcached: node-a-8core, cores 0-1, 2 threads")
     log("=" * 60)
 
