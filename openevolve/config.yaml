@@ -22,7 +22,7 @@ llm:
   timeout: 120
 
 prompt:
-  template_dir: "openevolve/prompts"
+  template_dir: "prompts"       # resolved relative to THIS config file
   system_message: "system"      # => openevolve/prompts/system.md
 
 database:
