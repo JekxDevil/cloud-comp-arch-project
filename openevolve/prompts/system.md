@@ -86,27 +86,53 @@ node-a: freqmine(6t, c2-7) → [blackscholes(4t, c2-5) ∥ vips(2t, c6-7)]
 node-b: canneal(4t, c0-3) → streamcluster(4t, c0-3)
 ```
 
-Per-job runtimes under this plan: freqmine 94 s, blackscholes 43 s,
-vips 53 s, barnes 46 s, radix 14 s, canneal 73 s, streamcluster 137 s.
-Critical path: **node-b's canneal+streamcluster chain at 210 s.**
+Predicted runtimes (calibrated against measured cluster data):
+
+| job          | runtime | runs on |
+|---|---|---|
+| freqmine     | ~133 s  | node-a alone (after t=0) |
+| blackscholes | ~57 s   | node-a parallel with vips |
+| vips         | ~72 s   | node-a parallel with blackscholes |
+| barnes       | ~40 s   | node-a alone |
+| radix        | ~24 s   | node-a alone |
+| canneal      | ~81 s   | node-b alone |
+| streamcluster| ~145 s  | node-b alone |
+
+- **node-a chain**: 133 + 72 + 40 + 24 = **~269 s** (max(bs, vips) = vips)
+- **node-b chain**: 81 + 145 = **~226 s**
+- **Makespan = max(node-a, node-b) ≈ 268 s** ← determined by **node-a**.
 
 ## The key insight you should exploit
 
-**node-b is the bottleneck** (canneal 73 s + streamcluster 137 s = 210 s).
-node-a finishes its chain in ~200 s and then sits idle. To beat 210 s you
-must either:
+**node-a is the bottleneck.** node-b finishes ~40 s earlier and sits idle.
+Improving makespan means **shortening the node-a chain**. node-a runs
+133 s of freqmine, then a parallel section where vips (72 s) is the long
+pole, then 40 s of barnes, then 24 s of radix. Three productive directions:
 
-- **(a) Run canneal and streamcluster in parallel on node-b** with disjoint
-  core subsets (e.g. 2 cores each at 2 threads). They are both BW-heavy
-  so expect a ~1.4× slowdown — does the parallelism still pay off?
-- **(b) Move some node-b work to node-a** during a window where node-a is
-  otherwise idle and the SLO can absorb the p95 hit. The arithmetic on
-  the p95-add table tells you which neighbours are safe.
-- **(c) Both:** finish freqmine/blackscholes/vips early, then steal a
-  short BW-heavy job onto node-a while keeping memcached's neighbours
-  light.
+- **(a) Shorten the parallel section.** Today vips@2t (72 s) lasts longer
+  than blackscholes@4t (57 s). If you swap the core split — give vips
+  4 cores and blackscholes 2 cores — vips drops to ~37 s but blackscholes
+  rises to ~105 s, which is *worse*. But other splits or thread counts
+  may help — try a few. Whichever takes longest sets the parallel-section
+  cost.
 
-Do **not** simply move both BW hogs to node-a — the SLO collapses.
+- **(b) Start barnes early on the freed cores.** When blackscholes finishes
+  at +57 s, cores 2-5 are idle until vips finishes at +72 s. If barnes
+  can start on cores 2-5 at +57 s while vips still runs on cores 6-7,
+  the chain shortens by ~15 s. (Pair penalty for barnes||vips is small —
+  pair(med, low) = 1.05.) Use `start_after=("blackscholes",)` instead of
+  `("blackscholes","vips")`.
+
+- **(c) Same idea for radix.** Radix only takes ~24 s; if it can run on
+  cores 6-7 in parallel with the tail of barnes, you save more. Radix is
+  high mem-BW though — pair(med, high)=1.20 — check the math.
+
+Avoid:
+- Moving canneal or streamcluster to node-a — they add 700-850 µs to
+  memcached p95 and instantly violate the SLO.
+- Oversubscribing cores (sum of threads > core count on a shared subset) —
+  the per-thread efficiency loss usually exceeds the parallelism gain.
+- Splitting node-b in parallel — it isn't the bottleneck anymore.
 
 ## What you may modify
 
@@ -126,17 +152,52 @@ comments, reordering Actions in the list without changing the DAG) do not
 count -- they produce the same simulated runtime.
 
 Concrete things to try, in rough order of likely payoff:
-1. Split node-b's chain: run canneal and streamcluster on disjoint 2-core
-   subsets of node-b in parallel. Yes, the high|high pair penalty is 1.4x,
-   but the parallelism may still beat 210s sequential. Compute it.
-2. Move blackscholes or vips to share cores with freqmine (oversubscribe
-   slightly) so that freqmine releases its cores earlier.
-3. Try freqmine at fewer threads (4 instead of 6) so blackscholes/vips
-   can start in parallel from t=0 on the freed cores.
-4. Stagger barnes/radix to start before the previous job fully finishes
-   if cores are available -- finer-grained DAG dependencies, not just
-   "wait for everything".
 
-Compute the predicted score in your head before writing the Action list.
-A policy that violates the SLO scores below 0; a baseline-equivalent
-scores 1.0; only structurally different SLO-feasible policies score above 1.
+1. **Tighten the DAG on node-a.** In the baseline, barnes waits for BOTH
+   blackscholes and vips. But blackscholes finishes ~15 s before vips,
+   and barnes only needs cores 2-5 (vips uses cores 6-7). Change
+   `start_after=("blackscholes","vips")` to `start_after=("blackscholes",)`
+   for barnes — barnes can run on its cores while vips is still on its
+   own cores.
+
+2. **Same for radix vs barnes.** If radix runs on cores 6-7 (where vips
+   was), it could start as soon as vips finishes, in parallel with
+   barnes on cores 2-5. Note: radix is high mem-BW, barnes is med/med —
+   pair penalty 1.20 — but their combined runtime may still beat the
+   sequential 40+24=64 s.
+
+3. **Try different thread counts in the parallel section.** The current
+   bs@4t/vips@2t split makes vips the long pole. Try bs@2t/vips@4t,
+   or bs@3t/vips@3t (the simulator interpolates), or both at the same
+   thread count. Whichever pair has the lower max-runtime wins.
+
+4. **Earlier start for the parallel section.** If you can split freqmine
+   into 4 threads on cores 2-5 and start vips@2t on cores 6-7 from t=0
+   in parallel with freqmine, vips finishes much earlier — but freqmine
+   takes ~178 s instead of 133 s at 4t. Net effect depends on the
+   downstream chain. Compute before committing.
+
+5. **Be creative.** The simulator scores ANY valid plan; don't be afraid
+   to propose unusual orderings. A plan that splits cores in three lanes
+   on node-a after freqmine, or that runs canneal at fewer threads to
+   leave cores free for streamcluster early, may surprise.
+
+Compute the predicted critical path in your head before writing the
+Action list. A policy that violates the SLO scores below 0; a
+baseline-equivalent scores 1.0; only structurally different SLO-feasible
+policies score above 1.
+
+## Example of a productive edit (study this before writing yours)
+
+Baseline:
+```python
+Action("barnes", "node-a", (2,3,4,5), 4, ("blackscholes","vips")),
+```
+Productive change — barnes starts as soon as bs is done, runs concurrently
+with the tail of vips on disjoint cores (vips uses 6-7, barnes uses 2-5):
+```python
+Action("barnes", "node-a", (2,3,4,5), 4, ("blackscholes",)),
+```
+Predicted impact: barnes starts ~15 s earlier → makespan drops ~15 s →
+speedup goes from 1.000 to ~1.06. SLO is unaffected (no co-located
+high-BW jobs). This is the *kind* of change you should be making.
