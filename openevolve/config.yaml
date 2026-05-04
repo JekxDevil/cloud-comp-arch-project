@@ -12,10 +12,11 @@ checkpoint_interval: 1          # MUST stay at 1 (course requirement)
 
 llm:
   api_base: "https://api.swissai.cscs.ch/v1"
-  # Code-tuned model + higher temperature: Llama-3.3-70B at temp 0.7 was
-  # producing zero-edit copies of the baseline, never exploring the policy
-  # space. Qwen3-Coder is purpose-built for code edits.
-  primary_model: "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+  # Back to Llama-3.3-70B (Qwen3-Coder is listed but returns 503 -- no
+  # provider). Keep temp 1.0 + non-diff mode to get genuine exploration
+  # this time. If still no diversity, switch to
+  # deepseek-ai/DeepSeek-R1-Distill-Llama-70B (reasoning-tuned).
+  primary_model: "meta-llama/Llama-3.3-70B-Instruct"
   temperature: 1.0
   top_p: 0.95
   max_tokens: 4096
