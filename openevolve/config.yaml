@@ -1,42 +1,40 @@
-# By default, your evolution will run for 50 iterations; feel free to change this value as needed.
-# At any time, you can resume evolution from a specific checkpoint by providing the --checkpoint flag to openevolve-run.
-max_iterations: 50
-checkpoint_interval: 1 # Do not change this
+# OpenEvolve config for Part 3.2 -- evolving a co-scheduling policy.
+#
+# Run from the repo root:
+#   export OPENAI_API_KEY=sk-rc-...
+#   openevolve-run --config openevolve/config.yaml \
+#                  -o openevolve_runs/run_$(date +%Y%m%d_%H%M%S) \
+#                  openevolve/initial_program.py \
+#                  openevolve/evaluator.py
+
+max_iterations: 80              # cheap simulator => can afford a real search
+checkpoint_interval: 1          # MUST stay at 1 (course requirement)
 
 llm:
   api_base: "https://api.swissai.cscs.ch/v1"
-  primary_model: "<your model>"
-  top_p: 0.7 # Feel free to experiment with this value
-  # Possible additional parameters to configure the LLM:
-  # temperature: 
-  # max_tokens: 
-  # timeout: 
+  # Swiss AI Platform models: meta-llama/Llama-3.3-70B-Instruct,
+  # Qwen/Qwen2.5-Coder-32B-Instruct, deepseek-ai/DeepSeek-V3, etc.
+  # Llama 3.3 70B is a solid default for code-edit diffs.
+  primary_model: "meta-llama/Llama-3.3-70B-Instruct"
+  temperature: 0.7              # some exploration, not chaotic
+  top_p: 0.9
+  max_tokens: 4096
+  timeout: 120
 
 prompt:
-  # Prompts to provide the LLM with. You can directly write the prompt in the config, e.g.
-  # system_message: |
-  #   You are an expert programmer tasked with optimizing the following code...
-  #
-  # Alternatively, you can create files containing the prompts, and reference them here, e.g.
-  # template_dir: "<path-to-prompt-directory>"
-  # system_message: "name_of_file"
-  #
-  # The system message will be the content of the file <path-to-prompt-directory>/name_of_file.txt
+  template_dir: "openevolve/prompts"
+  system_message: "system"      # => openevolve/prompts/system.md
 
-# You can learn more about these and other parameters here: https://github.com/algorithmicsuperintelligence/openevolve/blob/main/configs/default_config.yaml
 database:
-  population_size: 200 # Do not change this
-  # Relevant parameters:
-  # num_islands: 
-  # elite_selection_ratio: 
-  # exploitation_ratio: 
+  population_size: 200          # MUST stay at 200 (course requirement)
+  num_islands: 4                # parallel sub-populations help diversity
+  elite_selection_ratio: 0.1
+  exploitation_ratio: 0.6       # 60% mutate elites, 40% explore
 
-# Evaluator configuration
 evaluator:
   cascade_evaluation: false
-  parallel_evaluations: 1
-  # Relevant parameters:
-  # timeout: 
+  parallel_evaluations: 1       # simulator is fast; serial is fine
+  timeout: 30                   # any single eval >30s is a bug
 
-diff_based_evolution: true
+diff_based_evolution: true      # smaller, focused edits per iteration
 max_code_length: 50000
