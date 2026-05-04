@@ -85,9 +85,11 @@ def _load_module(path: Path, name: str):
 
 
 _BASELINE_MAKESPAN_S: float
+_BASELINE_PLAN: list = []
 try:
     _baseline_mod = _load_module(_INITIAL_PROGRAM, "_baseline_program")
-    _baseline_res = simulate(_baseline_mod.build_plan(), _PROFILE)
+    _BASELINE_PLAN = _baseline_mod.build_plan()
+    _baseline_res = simulate(_BASELINE_PLAN, _PROFILE)
     if _baseline_res.errors:
         raise RuntimeError(f"baseline failed to simulate: {_baseline_res.errors}")
     _BASELINE_MAKESPAN_S = _baseline_res.makespan_s
@@ -95,6 +97,86 @@ except Exception as e:  # noqa: BLE001
     # Don't crash the evaluator on import; just fall back to a sensible constant.
     print(f"[evaluator] WARNING: baseline calibration failed ({e}); using 210s", file=sys.stderr)
     _BASELINE_MAKESPAN_S = 210.0
+
+
+def _dag_edit_distance(candidate_actions, baseline_actions) -> int:
+    """Number of jobs whose (node, sorted-cores, threads, sorted-deps) differ
+    from the baseline. Range 0..N_jobs. 0 = identical plan; high = restructured."""
+    base = {a.job: a for a in baseline_actions}
+    n_diff = 0
+    for a in candidate_actions:
+        b = base.get(a.job)
+        if b is None:
+            n_diff += 1
+            continue
+        if (a.node != b.node
+                or tuple(sorted(a.cores)) != tuple(sorted(b.cores))
+                or a.threads != b.threads
+                or tuple(sorted(a.start_after)) != tuple(sorted(b.start_after))):
+            n_diff += 1
+    return n_diff
+
+
+def _coaching_artifact(sim_res, plan) -> str:
+    """Return a natural-language diagnostic for the LLM. Identifies the
+    bottleneck node, idle time on the other node, and the most promising
+    DAG edge to consider loosening on the critical path."""
+    timeline = sim_res.timeline
+    if not timeline:
+        return ""
+    by_job = {a.job: a for a in plan}
+
+    node_a_finish = max((e for s, e, j in timeline if by_job[j].node == "node-a"), default=0.0)
+    node_b_finish = max((e for s, e, j in timeline if by_job[j].node == "node-b"), default=0.0)
+    bottleneck = "node-a" if node_a_finish >= node_b_finish else "node-b"
+    other = "node-b" if bottleneck == "node-a" else "node-a"
+    other_idle = abs(node_a_finish - node_b_finish)
+
+    lines = [
+        f"BOTTLENECK: {bottleneck} finishes at {max(node_a_finish, node_b_finish):.0f}s.",
+        f"  {other} finishes {other_idle:.0f}s earlier and then sits idle.",
+    ]
+
+    # For each job on the bottleneck node, check if any of its start_after deps
+    # finished much earlier than the latest dep -- that's a candidate for loosening.
+    end_of = {j: e for s, e, j in timeline}
+    bottleneck_jobs = sorted(
+        [(s, e, j) for s, e, j in timeline if by_job[j].node == bottleneck],
+        key=lambda x: x[0],
+    )
+
+    suggestions = []
+    for s, e, j in bottleneck_jobs:
+        deps = list(by_job[j].start_after)
+        if len(deps) < 2:
+            continue
+        dep_finish = [(d, end_of.get(d, 0.0)) for d in deps]
+        latest_dep, latest_end = max(dep_finish, key=lambda x: x[1])
+        for d, d_end in dep_finish:
+            if d == latest_dep:
+                continue
+            slack = latest_end - d_end
+            if slack >= 5.0:
+                suggestions.append(
+                    f"  IDEA: '{j}' depends on {deps}; '{d}' finished {slack:.0f}s "
+                    f"before '{latest_dep}'. If '{j}'s cores don't conflict with "
+                    f"whatever ran between them, drop '{d}' from start_after to start "
+                    f"~{slack:.0f}s earlier."
+                )
+                break  # one suggestion per job is enough
+        if suggestions:
+            break  # one suggestion total per evaluation keeps the prompt focused
+
+    if not suggestions and other_idle > 10:
+        suggestions.append(
+            f"  IDEA: {other} sits idle for {other_idle:.0f}s. Could any work move there? "
+            f"(Beware: moving a high-mem-BW job to node-a violates the SLO.)"
+        )
+    if not suggestions:
+        suggestions.append("  No obvious DAG edge to loosen; try changing thread/core split or job order.")
+
+    lines.extend(suggestions)
+    return "\n".join(lines)
 
 
 def _failed(reason: str, **extra) -> EvaluationResult:
@@ -107,6 +189,7 @@ def _failed(reason: str, **extra) -> EvaluationResult:
         "slo_violation_ratio": 1.0,
         "slo_violation_us": float("inf"),
         "valid": 0.0,
+        "dag_edit_distance": 0.0,
         **extra,
     }
     return EvaluationResult(metrics=metrics, artifacts={"error": reason})
@@ -156,6 +239,8 @@ def evaluate(program_path: str) -> EvaluationResult:
     slo_hard = 5.0 * res.slo_violation_ratio
     combined = speedup - slo_soft - slo_hard
 
+    dag_dist = _dag_edit_distance(actions, _BASELINE_PLAN)
+
     metrics = {
         "combined_score": float(combined),
         "makespan_s": float(res.makespan_s),
@@ -165,13 +250,21 @@ def evaluate(program_path: str) -> EvaluationResult:
         "slo_violation_ratio": float(res.slo_violation_ratio),
         "slo_violation_us": float(res.slo_violation_us),
         "valid": 1.0,
+        # Feature dimension for MAP-Elites: rewards structurally-different
+        # plans, not just textually-different ones. Keeps the database from
+        # filling up with cosmetic baseline reskins.
+        "dag_edit_distance": float(dag_dist),
     }
-    # Per-job runtimes are useful for the report but not for evolution; ship
-    # them as artifacts so they don't clutter the metrics dashboard.
+    # Coaching artifact -- shown to the LLM in the next iteration's prompt.
+    # Natural-language directive beats opaque numbers (per the
+    # circle_packing_with_artifacts example pattern).
+    coaching = _coaching_artifact(res, actions)
     artifacts = {
-        "per_job_runtime_s": {k: round(v, 2) for k, v in res.per_job_runtime_s.items()},
-        "timeline": [(round(s, 2), round(e, 2), j) for s, e, j in res.timeline],
-        "baseline_makespan_s": _BASELINE_MAKESPAN_S,
+        "diagnosis": coaching,
+        "predicted_per_job_runtime_s": ", ".join(
+            f"{k}={v:.1f}s" for k, v in sorted(res.per_job_runtime_s.items(), key=lambda x: -x[1])
+        ),
+        "your_plan_differs_from_baseline_in_n_jobs": dag_dist,
     }
     return EvaluationResult(metrics=metrics, artifacts=artifacts)
 

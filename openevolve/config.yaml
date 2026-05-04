@@ -31,6 +31,15 @@ database:
   num_islands: 4                # parallel sub-populations help diversity
   elite_selection_ratio: 0.1
   exploitation_ratio: 0.6       # 60% mutate elites, 40% explore
+  # MAP-Elites cells: rewards filling the (score, structural_diversity) grid.
+  # Without dag_edit_distance the LLM kept producing baseline-equivalent
+  # plans; this forces the database to keep structurally-different ones too.
+  feature_dimensions:
+    - "combined_score"
+    - "dag_edit_distance"
+  feature_bins:
+    combined_score: 10
+    dag_edit_distance: 8        # 0..7 jobs can differ from baseline
 
 evaluator:
   cascade_evaluation: false
