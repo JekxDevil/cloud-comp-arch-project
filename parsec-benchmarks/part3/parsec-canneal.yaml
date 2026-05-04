@@ -12,13 +12,13 @@ spec:
         name: parsec-canneal
         imagePullPolicy: Always
         command: ["/bin/sh"]
-        args: ["-c", "taskset -c 2-7 ./run -a run -S parsec -p canneal -i native -n 6"]
+        args: ["-c", "./run -a run -S parsec -p canneal -i native -n 4"]
         resources:
           requests:
             cpu: "500m"
-            memory: "4Gi"
+            memory: "1Gi"
           limits:
-            memory: "12Gi"
+            memory: "3Gi"
       restartPolicy: Never
       nodeSelector:
-        cca-project-nodetype: "node-a-8core"
+        cca-project-nodetype: "node-b-4core"

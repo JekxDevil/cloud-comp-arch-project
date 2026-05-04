@@ -12,7 +12,7 @@ spec:
         name: parsec-barnes
         imagePullPolicy: Always
         command: ["/bin/sh"]
-        args: ["-c", "./run -a run -S splash2x -p barnes -i native -n 4"]
+        args: ["-c", "taskset -c 2-5 ./run -a run -S splash2x -p barnes -i native -n 4"]
         resources:
           requests:
             cpu: "500m"
@@ -21,4 +21,4 @@ spec:
             memory: "4Gi"
       restartPolicy: Never
       nodeSelector:
-        cca-project-nodetype: "node-b-4core"
+        cca-project-nodetype: "node-a-8core"
