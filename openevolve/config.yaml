@@ -12,12 +12,12 @@ checkpoint_interval: 1          # MUST stay at 1 (course requirement)
 
 llm:
   api_base: "https://api.swissai.cscs.ch/v1"
-  # Swiss AI Platform models: meta-llama/Llama-3.3-70B-Instruct,
-  # Qwen/Qwen2.5-Coder-32B-Instruct, deepseek-ai/DeepSeek-V3, etc.
-  # Llama 3.3 70B is a solid default for code-edit diffs.
-  primary_model: "meta-llama/Llama-3.3-70B-Instruct"
-  temperature: 0.7              # some exploration, not chaotic
-  top_p: 0.9
+  # Code-tuned model + higher temperature: Llama-3.3-70B at temp 0.7 was
+  # producing zero-edit copies of the baseline, never exploring the policy
+  # space. Qwen3-Coder is purpose-built for code edits.
+  primary_model: "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+  temperature: 1.0
+  top_p: 0.95
   max_tokens: 4096
   timeout: 120
 
@@ -36,5 +36,6 @@ evaluator:
   parallel_evaluations: 1       # simulator is fast; serial is fine
   timeout: 30                   # any single eval >30s is a bug
 
-diff_based_evolution: true      # smaller, focused edits per iteration
+diff_based_evolution: false     # full block rewrites: gives the LLM room to restructure,
+                                # not just patch. Diff mode kept producing no-op edits.
 max_code_length: 50000

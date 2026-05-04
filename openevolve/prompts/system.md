@@ -114,3 +114,29 @@ Only the code between `# EVOLVE-BLOCK-START` and `# EVOLVE-BLOCK-END`.
 You may add helper constants or functions inside that block; you may not
 import new modules or change the imports above the block. Keep
 `build_plan() -> list[Action]` as the entry point. Return real `Action`s.
+
+## Critical: you MUST change the policy
+
+The starting program already encodes the baseline. If you return the
+baseline unchanged, you score 1.0 -- which is failure. **Your job is to
+score above 1.0** by restructuring the schedule. Always emit a list of
+Actions that differs from the baseline in at least one of: `cores`,
+`threads`, `start_after`, `node`, or job order. Trivial edits (whitespace,
+comments, reordering Actions in the list without changing the DAG) do not
+count -- they produce the same simulated runtime.
+
+Concrete things to try, in rough order of likely payoff:
+1. Split node-b's chain: run canneal and streamcluster on disjoint 2-core
+   subsets of node-b in parallel. Yes, the high|high pair penalty is 1.4x,
+   but the parallelism may still beat 210s sequential. Compute it.
+2. Move blackscholes or vips to share cores with freqmine (oversubscribe
+   slightly) so that freqmine releases its cores earlier.
+3. Try freqmine at fewer threads (4 instead of 6) so blackscholes/vips
+   can start in parallel from t=0 on the freed cores.
+4. Stagger barnes/radix to start before the previous job fully finishes
+   if cores are available -- finer-grained DAG dependencies, not just
+   "wait for everything".
+
+Compute the predicted score in your head before writing the Action list.
+A policy that violates the SLO scores below 0; a baseline-equivalent
+scores 1.0; only structurally different SLO-feasible policies score above 1.

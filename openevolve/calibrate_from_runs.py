@@ -52,9 +52,10 @@ def parse_pods(path: Path) -> dict[str, dict]:
         node = pod.get("spec", {}).get("nodeName") or ""
         # Best-effort: 'node-a-8core' / 'node-b-4core' → 'node-a' / 'node-b'.
         node_short = "node-a" if "8core" in node else ("node-b" if "4core" in node else node)
+        # mcperf reports ts_start/ts_end in MILLISECONDS, so use the same unit.
         out[job] = {
-            "start_us": int(st.timestamp() * 1_000_000),
-            "end_us":   int(en.timestamp() * 1_000_000),
+            "start_ms": int(st.timestamp() * 1000),
+            "end_ms":   int(en.timestamp() * 1000),
             "duration_s": (en - st).total_seconds(),
             "node": node_short,
         }
@@ -62,7 +63,7 @@ def parse_pods(path: Path) -> dict[str, dict]:
 
 
 def parse_mcperf(path: Path) -> list[tuple[int, int, float]]:
-    """Returns list of (ts_start_us, ts_end_us, p95_us) measurement windows."""
+    """Returns list of (ts_start_ms, ts_end_ms, p95_us) measurement windows."""
     rows: list[tuple[int, int, float]] = []
     with path.open() as f:
         header = None
@@ -98,7 +99,7 @@ def per_job_p95(pods: dict[str, dict], mcperf: list[tuple[int, int, float]]) -> 
     out: dict[str, list[float]] = {j: [] for j in node_a_pods}
 
     for ts_s, ts_e, p95 in mcperf:
-        active = [j for j, w in node_a_pods.items() if windows_overlap(ts_s, ts_e, w["start_us"], w["end_us"])]
+        active = [j for j, w in node_a_pods.items() if windows_overlap(ts_s, ts_e, w["start_ms"], w["end_ms"])]
         if len(active) == 1:
             out[active[0]].append(p95)
     return {j: mean(vs) for j, vs in out.items() if vs}
@@ -109,7 +110,7 @@ def baseline_p95(pods: dict[str, dict], mcperf: list[tuple[int, int, float]]) ->
     node_a_pods = [w for w in pods.values() if w["node"] == "node-a"]
     vals: list[float] = []
     for ts_s, ts_e, p95 in mcperf:
-        if not any(windows_overlap(ts_s, ts_e, w["start_us"], w["end_us"]) for w in node_a_pods):
+        if not any(windows_overlap(ts_s, ts_e, w["start_ms"], w["end_ms"]) for w in node_a_pods):
             vals.append(p95)
     return mean(vals) if vals else None
 
