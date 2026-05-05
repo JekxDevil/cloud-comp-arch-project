@@ -29,10 +29,10 @@ IMAGES = {
     "freqmine":      "anakli/cca:parsec_freqmine",
     "blackscholes":  "anakli/cca:parsec_blackscholes",
     "vips":          "anakli/cca:parsec_vips",
-    "barnes":        "anakli/cca:splash3_barnes",
+    "barnes":        "anakli/cca:splash2x_barnes",
     "canneal":       "anakli/cca:parsec_canneal",
     "streamcluster": "anakli/cca:parsec_streamcluster",
-    "radix":         "anakli/cca:splash3_radix",
+    "radix":         "anakli/cca:splash2x_radix",
 }
 
 # PARSEC suite names for the `-S` flag.
