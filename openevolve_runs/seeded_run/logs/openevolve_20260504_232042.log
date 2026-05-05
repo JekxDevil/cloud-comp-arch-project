@@ -1,0 +1,10 @@
+2026-05-04 23:20:42,814 - openevolve.controller - INFO - Logging to openevolve_runs/seeded_run/logs/openevolve_20260504_232042.log
+2026-05-04 23:20:42,895 - openevolve.controller - INFO - Set random seed to 42 for reproducibility
+2026-05-04 23:20:42,945 - openevolve.llm.openai - INFO - Initialized OpenAI LLM with model: meta-llama/Llama-3.3-70B-Instruct
+2026-05-04 23:20:42,945 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: meta-llama/Llama-3.3-70B-Instruct (weight: 1.00)
+2026-05-04 23:20:42,954 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-05-04 23:20:42,955 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-05-04 23:20:42,956 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-05-04 23:20:42,961 - openevolve.evaluator - INFO - Successfully loaded evaluation function from openevolve/evaluator.py
+2026-05-04 23:20:42,961 - openevolve.evaluator - INFO - Initialized evaluator with openevolve/evaluator.py
+2026-05-04 23:20:42,961 - openevolve.controller - INFO - Initialized OpenEvolve with openevolve/initial_program.py

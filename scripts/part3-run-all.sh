@@ -3,9 +3,11 @@ set -euo pipefail
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 RUNS=3
-CLIENT_MEASURE="client-measure-bpf2"
+#CLIENT_MEASURE="client-measure-bpf2"
 ZONE="europe-west1-b"
-AGENT_A_IP="10.0.16.3"
+CLIENT_MEASURE="client-measure-qhm4"
+AGENT_A_IP="10.0.16.7"
+#AGENT_A_IP="10.0.16.3"
 AGENT_B_IP="10.0.16.5"
 MCPERF_DIR="~/memcache-perf-dynamic"
 OUTPUT_DIR="results"

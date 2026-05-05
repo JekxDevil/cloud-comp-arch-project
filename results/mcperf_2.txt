@@ -1,0 +1,4 @@
+#type       avg     std     min      p5     p10     p50     p67     p75     p80     p85     p90     p95     p99    p999   p9999      QPS   target       ts_start         ts_end
+read      250.2   107.9    86.8   146.7   162.1   238.9   270.2   287.6   300.0   316.8   340.9   385.5   516.1  1035.7  4235.1  29942.2    30000  1777922517816  1777922523001
+Warning! Detected max cpu usage > 95%
+CPU Usage Stats (avg/min/max): 100.00%,100.00%,100.00%
