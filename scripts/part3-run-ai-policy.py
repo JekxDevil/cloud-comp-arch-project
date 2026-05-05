@@ -60,12 +60,21 @@ def kubectl(*args: str) -> subprocess.CompletedProcess:
 def load_plan(program_path: Path) -> list:
     """Import `program_path` and return its build_plan() output."""
     program_path = program_path.resolve()
-    # Make the openevolve/ dir importable so `from sim import Action` works.
-    openevolve_dir = program_path.parent
-    while openevolve_dir.parent != openevolve_dir and not (openevolve_dir / "sim").is_dir():
-        openevolve_dir = openevolve_dir.parent
-    if (openevolve_dir / "sim").is_dir():
-        sys.path.insert(0, str(openevolve_dir))
+    # The `from sim import Action` inside the program needs the openevolve/
+    # directory on sys.path. Find it by walking up from this script: the repo
+    # root contains an openevolve/sim/ directory.
+    here = Path(__file__).resolve().parent
+    candidate = here.parent / "openevolve"  # repo_root/openevolve/
+    if (candidate / "sim").is_dir():
+        sys.path.insert(0, str(candidate))
+    else:
+        # Fallback: search upward from program file for any "openevolve/sim".
+        d = program_path.parent
+        while d.parent != d:
+            if (d / "openevolve" / "sim").is_dir():
+                sys.path.insert(0, str(d / "openevolve"))
+                break
+            d = d.parent
 
     spec = importlib.util.spec_from_file_location("_ai_policy", program_path)
     if spec is None or spec.loader is None:
