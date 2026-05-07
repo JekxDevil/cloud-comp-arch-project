@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Part 4 Controller — dynamic scheduler for memcached + PARSEC batch jobs.
+Part 4 Controller, dynamic scheduler for memcached + PARSEC batch jobs.
 
 Runs on the memcache-server VM (4-core n2d-highmem-4).
 - Memcached runs natively; CPU affinity is adjusted with taskset.
 - Batch jobs run in Docker; CPU affinity is updated via docker container update.
-- Controller polls memcached CPU utilisation every POLL_INTERVAL seconds and
+- Controller polls memcached CPU utilization every POLL_INTERVAL seconds and
   adjusts core assignments so the 0.8 ms p95 latency SLO is maintained.
 
 Usage (on the memcache-server VM):

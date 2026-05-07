@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Run this script ON THE MEMCACHE-SERVER VM to set up everything for Part 4.
-# Copy it with:
+# run this script on memcache-server vm to set up everything for Part 4.
+# copy with:
 #   scp -i ~/.ssh/cloud-computing scripts/part-4-setup-memcache-server.sh ubuntu@<MEMCACHE_EXTERNAL_IP>:~
-# Then on the VM:
+# then on the vm:
 #   chmod +x part-4-setup-memcache-server.sh && ./part-4-setup-memcache-server.sh
 
 set -euo pipefail
@@ -10,12 +10,12 @@ set -euo pipefail
 MEMCACHED_THREADS=3
 MEMCACHED_MEMORY_MB=6144   # ~6 GB; n2d-highmem-4 has 32 GB RAM
 
-# ── 1. Install memcached ───────────────────────────────────────────────────────
-echo "[SETUP] Installing memcached …"
+# Install memcached
+echo "[SETUP] Installing memcached ..."
 sudo apt-get update -qq
 sudo apt-get install -y memcached libmemcached-tools
 
-# ── 2. Configure memcached ────────────────────────────────────────────────────
+# Configure memcached
 INTERNAL_IP=$(hostname -I | awk '{print $1}')
 echo "[SETUP] Internal IP = $INTERNAL_IP"
 
@@ -30,8 +30,8 @@ EOF
 sudo systemctl restart memcached
 sudo systemctl --no-pager status memcached
 
-# ── 3. Install Docker ─────────────────────────────────────────────────────────
-echo "[SETUP] Installing Docker …"
+# Install Docker
+echo "[SETUP] Installing Docker ..."
 sudo apt-get install -y ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
@@ -52,8 +52,8 @@ sudo usermod -aG docker "$USER"
 echo "[SETUP] Docker installed. You may need to log out/in for group to take effect."
 echo "        Alternatively run:  newgrp docker"
 
-# ── 4. Install Python deps ────────────────────────────────────────────────────
-echo "[SETUP] Installing Python dependencies …"
+# Install Python deps
+echo "[SETUP] Installing Python dependencies ..."
 sudo apt-get install -y python3-pip python3-venv
 
 python3 -m venv ~/controller-venv

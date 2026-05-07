@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Part 4 orchestrator — run from your LOCAL machine.
+# Part 4 orchestrator, run from your local machine.
 #
 # Usage:
 #   export KOPS_STATE_STORE=gs://<your-bucket>/
@@ -45,8 +45,8 @@ get_internal_ip() {
   kubectl get nodes -o wide | grep -E "^${prefix}" | awk '{print $6}'
 }
 
-# ── 1. Cluster setup ──────────────────────────────────────────────────────────
-log "Creating / validating Part 4 cluster …"
+# Cluster setup
+log "[SETUP CLUSTER] Creating / validating Part 4 cluster ..."
 if ! kops get cluster part4.k8s.local &>/dev/null; then
   PROJECT=$(gcloud config get-value project)
   kops create -f "$PROJECT_ROOT/part4.yaml"
@@ -56,7 +56,7 @@ fi
 kops validate cluster --wait 10m
 kubectl get nodes -o wide
 
-# ── 2. Gather IPs ─────────────────────────────────────────────────────────────
+# Gather IPs
 MEMCACHE_EXT=$(get_external_ip memcache-server)
 MEMCACHE_INT=$(get_internal_ip memcache-server)
 AGENT_EXT=$(get_external_ip client-agent)
@@ -71,15 +71,16 @@ log "memcache-server: ext=$MEMCACHE_EXT  int=$MEMCACHE_INT"
 log "client-agent:    ext=$AGENT_EXT     int=$AGENT_INT"
 log "client-measure:  ext=$MEASURE_EXT"
 
-# ── 3. Set up client VMs ──────────────────────────────────────────────────────
+# Set up client VMs
+log "Setting up client VMs with mcperf ..."
 for HOST in "$AGENT_EXT" "$MEASURE_EXT"; do
-  log "Setting up mcperf on $HOST …"
+  log "Setting up mcperf on $HOST ..."
   scp $SSH_OPTS "$PROJECT_ROOT/scripts/part-4-setup-clients.sh" "ubuntu@$HOST:~"
   ssh $SSH_OPTS "ubuntu@$HOST" "bash part-4-setup-clients.sh"
 done
 
-# ── 4. Set up memcache-server ─────────────────────────────────────────────────
-log "Setting up memcache-server ($MEMCACHE_EXT) …"
+# Set up memcache-server
+log "Setting up memcache-server ($MEMCACHE_EXT) ..."
 for F in \
   "$PROJECT_ROOT/scripts/part-4-setup-memcache-server.sh" \
   "$PROJECT_ROOT/scripts/controller.py" \
@@ -89,8 +90,8 @@ done
 
 ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" "bash part-4-setup-memcache-server.sh"
 
-# Give Docker group change time to propagate (we'll use 'sg docker' below)
-log "Pulling Docker images on memcache-server (this takes a few minutes) …"
+# Give Docker group change time to propagate to use 'sg docker'
+log "Pulling Docker images on memcache-server (this takes a few minutes) ..."
 ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
   "sudo docker pull anakli/cca:parsec_streamcluster &
    sudo docker pull anakli/cca:parsec_freqmine &
@@ -102,19 +103,19 @@ ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
    wait
    echo '[SETUP] All images pulled.'"
 
-# ── 5. Load memcached ─────────────────────────────────────────────────────────
-log "Loading memcached data …"
+# Load memcached
+log "Loading memcached data ..."
 ssh $SSH_OPTS "ubuntu@$MEASURE_EXT" \
   "~/memcache-perf-dynamic/mcperf -s $MEMCACHE_INT --loadonly"
 
-# ── 6. Start mcperf agent ─────────────────────────────────────────────────────
-log "Starting mcperf agent on client-agent …"
+# Start mcperf agent
+log "Starting mcperf agent on client-agent ..."
 ssh $SSH_OPTS "ubuntu@$AGENT_EXT" \
   "nohup ~/memcache-perf-dynamic/mcperf -T 8 -A > mcperf_agent.log 2>&1 &"
 
-# ── 7. Launch the controller (background on memcache-server) ──────────────────
+# Launch the controller (background on memcache-server)
 RESULTS_DIR="results_run_${RUN_NUMBER}"
-log "Launching controller on memcache-server …"
+log "Launching controller on memcache-server ..."
 ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
   "mkdir -p $RESULTS_DIR && \
    sudo sg docker -c 'python3 ~/controller.py' 2>&1 | tee ~/$RESULTS_DIR/controller.log &
@@ -124,8 +125,8 @@ ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
 # Give controller a few seconds to pin memcached cores before load starts
 sleep 5
 
-# ── 8. Run mcperf measurement (blocks until trace finishes) ──────────────────
-log "Starting dynamic mcperf load trace (seed=${QPS_SEED}, interval=${QPS_INTERVAL}s, ${MCPERF_DURATION}s total) …"
+# Run mcperf measurement, blocks until trace finishes
+log "Starting dynamic mcperf load trace (seed=${QPS_SEED}, interval=${QPS_INTERVAL}s, ${MCPERF_DURATION}s total) ..."
 ssh $SSH_OPTS "ubuntu@$MEASURE_EXT" \
   "~/memcache-perf-dynamic/mcperf \
       -s $MEMCACHE_INT -a $AGENT_INT \
@@ -138,8 +139,8 @@ ssh $SSH_OPTS "ubuntu@$MEASURE_EXT" \
 
 log "mcperf trace finished."
 
-# ── 9. Collect results ────────────────────────────────────────────────────────
-log "Collecting results …"
+# Collect results
+log "Collecting results ..."
 LOCAL_RESULTS="$PROJECT_ROOT/data/part4/run_${RUN_NUMBER}"
 mkdir -p "$LOCAL_RESULTS"
 
