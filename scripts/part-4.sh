@@ -113,17 +113,20 @@ log "Starting mcperf agent on client-agent ..."
 ssh $SSH_OPTS "ubuntu@$AGENT_EXT" \
   "nohup ~/memcache-perf-dynamic/mcperf -T 8 -A > mcperf_agent.log 2>&1 &"
 
-# Launch the controller (background on memcache-server)
+# Launch the controller — background the SSH itself locally so we don't block.
+# sudo can keep inherited FDs open, preventing the remote shell from releasing
+# the SSH channel even with nohup+redirect; backgrounding locally sidesteps this.
 RESULTS_DIR="results_run_${RUN_NUMBER}"
 log "Launching controller on memcache-server ..."
 ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
-  "mkdir -p $RESULTS_DIR && \
-   sudo sg docker -c 'python3 ~/controller.py' 2>&1 | tee ~/$RESULTS_DIR/controller.log &
-   echo \$! > ~/controller.pid
-   echo '[CTRL] Controller started in background'"
+  "mkdir -p /home/ubuntu/$RESULTS_DIR && \
+   nohup sudo /home/ubuntu/controller-venv/bin/python3 -u /home/ubuntu/controller.py \
+     < /dev/null > /home/ubuntu/$RESULTS_DIR/controller.log 2>&1 &
+   sleep 1 && pgrep -n -f 'python3.*controller.py' > /home/ubuntu/controller.pid || true
+   echo '[CTRL] Controller started in background'" &
 
-# Give controller a few seconds to pin memcached cores before load starts
-sleep 5
+# Give controller time to start and pin memcached before load begins
+sleep 10
 
 # Run mcperf measurement, blocks until trace finishes
 log "Starting dynamic mcperf load trace (seed=${QPS_SEED}, interval=${QPS_INTERVAL}s, ${MCPERF_DURATION}s total) ..."
@@ -141,7 +144,7 @@ log "mcperf trace finished."
 
 # Collect results
 log "Collecting results ..."
-LOCAL_RESULTS="$PROJECT_ROOT/data/part4/run_${RUN_NUMBER}"
+LOCAL_RESULTS="$PROJECT_ROOT/data/part-4/run_${RUN_NUMBER}"
 mkdir -p "$LOCAL_RESULTS"
 
 # mcperf output
