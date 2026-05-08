@@ -3,18 +3,18 @@
 Part 4 Controller, dynamic scheduler for memcached + PARSEC batch jobs.
 
 Runs on the memcache-server VM (4-core n2d-highmem-4).
-- Memcached runs natively; CPU affinity is adjusted with taskset.
+- Memcached runs natively; CPU affinity is adjusted with taskset, as docker --cpuset-cpus does not work.
 - Batch jobs run in Docker; CPU affinity is updated via docker container update.
 - Controller polls memcached CPU utilization every POLL_INTERVAL seconds and
   adjusts core assignments so the 0.8 ms p95 latency SLO is maintained.
 
-Usage (on the memcache-server VM):
+Usage: on the memcache-server VM run
     python3 controller.py
 
 Assumptions:
     - memcached is already installed and running (sudo systemctl start memcached).
     - Docker is installed and the current user has permission to call the daemon
-      (e.g. via  sudo usermod -a -G docker $USER).
+      e.g. via `sudo usermod -a -G docker $USER`
     - scheduler_logger.py lives one directory above this file (../scheduler_logger.py).
 """
 
@@ -29,23 +29,24 @@ from typing import Optional
 import docker
 import psutil
 
-# ── Locate scheduler_logger.py (lives at repo root, one level up) ─────────────
+
+# Locate scheduler_logger.py which lives at repo root, one level up
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from scheduler_logger import SchedulerLogger, Job  # noqa: E402
 
-# ─── Cluster topology ─────────────────────────────────────────────────────────
+# Cluster topology
 TOTAL_CORES: list[int] = list(range(4))   # cores 0-3 on the 4-core VM
 
-# ─── Memcached parameters ─────────────────────────────────────────────────────
+# Memcached parameters
 # Fixed at memcached startup in /etc/memcached.conf (-t flag).
 # 3 threads lets memcached scale to 125 K+ QPS when given 3 cores.
 MEMCACHED_THREADS: int = 3
 
-# ─── Control-loop parameters ──────────────────────────────────────────────────
+# Control-loop parameters
 POLL_INTERVAL: float = 0.5    # seconds between controller iterations
 
-# CPU thresholds (fraction of per-core capacity, 0–100).
-# Memcached util is measured as  total_cpu_pct / num_allocated_cores.
+# CPU thresholds: fraction of per-core capacity, 0–100.
+# Memcached util is measured as total_cpu_pct / num_allocated_cores.
 CPU_HIGH: float = 80.0   # expand memcached if util/core exceeds this
 CPU_LOW:  float = 30.0   # shrink memcached if util/core falls below this
 
@@ -57,11 +58,12 @@ SHRINK_POLLS: int = 8    # be conservative before freeing cores
 MEM_CORES_MIN: int = 1
 MEM_CORES_MAX: int = 3   # always leave at least 1 core for batch jobs
 
-# Maximum concurrent batch containers (1 avoids LLC thrashing between jobs)
+# Maximum concurrent batch containers: 1 avoids LLC thrashing between jobs
 MAX_CONCURRENT_JOBS: int = 2
 
-# ─── Batch-job catalogue ──────────────────────────────────────────────────────
-# Ordered longest-first to minimise total makespan.
+
+# Batch-job catalogue
+# Ordered longest-first to minimize total makespan.
 # max_threads: upper bound on the -n argument for this job.
 #   Memory-bound jobs (canneal, radix) don't benefit from many threads.
 
@@ -111,7 +113,8 @@ BATCH_QUEUE: list[tuple[Job, str, str, int]] = [
     ),
 ]
 
-# ─── Helpers ──────────────────────────────────────────────────────────────────
+
+# Helpers
 
 def cores_to_cpuset(cores: list[int]) -> str:
     """Convert a sorted core list to a Docker/taskset cpuset string.
@@ -138,7 +141,7 @@ def find_memcached_pid() -> Optional[int]:
 
 
 def read_memcached_cpu(pid: int, num_cores: int) -> float:
-    """Return memcached CPU utilisation as a percentage of one core (0–100).
+    """Return memcached CPU utilization as a percentage of one core (0–100).
 
     Uses a 0.2-second blocking sample so the first call is accurate.
     """
@@ -151,7 +154,7 @@ def read_memcached_cpu(pid: int, num_cores: int) -> float:
 
 
 def taskset_pid(pid: int, cores: list[int]) -> None:
-    """Pin all threads of *pid* to *cores* using taskset."""
+    """Pin all threads of pid to cores using taskset."""
     cpuset = cores_to_cpuset(cores)
     subprocess.run(
         ["sudo", "taskset", "-a", "-cp", cpuset, str(pid)],
@@ -160,8 +163,7 @@ def taskset_pid(pid: int, cores: list[int]) -> None:
     )
 
 
-# ─── Controller ───────────────────────────────────────────────────────────────
-
+# Controller class
 class Controller:
     """Dynamic scheduler for memcached + PARSEC batch jobs on a 4-core VM."""
 
@@ -172,7 +174,7 @@ class Controller:
         self.memcached_pid: Optional[int] = None
         self.memcached_cores: list[int] = [0]   # updated dynamically
 
-        # Running batch jobs: name → {container, cores, job_enum, threads}
+        # Running batch jobs: name -> {container, cores, job_enum, threads}
         self.running: dict[str, dict] = {}
         self.queue: list[tuple[Job, str, str, int]] = list(BATCH_QUEUE)
 
@@ -184,31 +186,36 @@ class Controller:
         signal.signal(signal.SIGINT,  self._on_signal)
         signal.signal(signal.SIGTERM, self._on_signal)
 
+
     def _on_signal(self, _sig, _frame) -> None:
         self._stop = True
 
-    # ── Core bookkeeping ──────────────────────────────────────────────────────
 
+    # Core bookkeeping
     def _batch_cores(self) -> set[int]:
+        """Get cores used by batch jobs which are within the running dict."""
         used: set[int] = set()
         for info in self.running.values():
             used.update(info["cores"])
         return used
 
+
     def _free_cores(self) -> list[int]:
+        """Get free cores not used by neither memcache nor batch jobs."""
         used = set(self.memcached_cores) | self._batch_cores()
         return [c for c in TOTAL_CORES if c not in used]
+
 
     def _cores_available_for_new_job(self) -> list[int]:
         return self._free_cores()
 
-    # ── Memcached setup ───────────────────────────────────────────────────────
 
+    # Memcached setup
     def _init_memcached(self) -> None:
         self.memcached_pid = find_memcached_pid()
         if not self.memcached_pid:
             raise RuntimeError(
-                "memcached process not found; ensure it is running on this VM."
+                "memcached process not found, ensure it is running on this VM."
             )
         print(f"[CTRL] memcached PID={self.memcached_pid}")
 
@@ -218,10 +225,10 @@ class Controller:
         self.logger.job_start(Job.MEMCACHED, self.memcached_cores, MEMCACHED_THREADS)
         print(f"[CTRL] memcached pinned to cores {self.memcached_cores}")
 
-    # ── Memcached core adjustment ─────────────────────────────────────────────
 
+    # Memcached core adjustment
     def _adjust_memcached(self, cpu_pct: float) -> None:
-        """Grow or shrink memcached's core set based on CPU utilisation."""
+        """Grow or shrink memcached's core set based on CPU utilization."""
         n = len(self.memcached_cores)
 
         if cpu_pct > CPU_HIGH and n < MEM_CORES_MAX:
@@ -241,6 +248,7 @@ class Controller:
             self._high_cnt = max(0, self._high_cnt - 1)
             self._low_cnt  = max(0, self._low_cnt  - 1)
 
+
     def _try_expand_memcached(self) -> None:
         """Give memcached one additional core, stealing from a batch job if needed."""
         # Prefer a free core first
@@ -250,7 +258,7 @@ class Controller:
             self.memcached_cores = sorted(self.memcached_cores + [new_core])
             taskset_pid(self.memcached_pid, self.memcached_cores)
             self.logger.update_cores(Job.MEMCACHED, self.memcached_cores)
-            print(f"[CTRL] memcached expanded → {self.memcached_cores} (free core)")
+            print(f"[CTRL] memcached expanded -> {self.memcached_cores} (free core)")
             return
 
         # Otherwise steal from the batch job with the most cores
@@ -259,8 +267,9 @@ class Controller:
             if len(info["cores"]) > 1:
                 if best_info is None or len(info["cores"]) > len(best_info["cores"]):
                     best_name, best_info = name, info
+
         if best_name is None:
-            print("[CTRL] Cannot expand memcached; all batch jobs have only 1 core")
+            print("[CTRL] Cannot expand memcached: all batch jobs have only 1 core")
             return
 
         stolen = max(best_info["cores"])   # take the highest core from the job
@@ -270,6 +279,7 @@ class Controller:
         except docker.errors.APIError as exc:
             print(f"[CTRL] docker update failed for {best_name}: {exc}")
             return
+
         best_info["cores"] = new_job_cores
         self.logger.update_cores(best_info["job_enum"], new_job_cores)
 
@@ -278,21 +288,22 @@ class Controller:
         self.logger.update_cores(Job.MEMCACHED, self.memcached_cores)
         print(
             f"[CTRL] Stole core {stolen} from {best_name}; "
-            f"memcached → {self.memcached_cores}, {best_name} → {new_job_cores}"
+            f"memcached++ -> {self.memcached_cores}, {best_name}-- -> {new_job_cores}"
         )
 
     def _shrink_memcached(self) -> None:
-        """Release memcached's highest-numbered core back to batch jobs."""
+        """Release memcached's highest numbered core back to batch jobs."""
         released = max(self.memcached_cores)
         self.memcached_cores = [c for c in self.memcached_cores if c != released]
         taskset_pid(self.memcached_pid, self.memcached_cores)
         self.logger.update_cores(Job.MEMCACHED, self.memcached_cores)
-        print(f"[CTRL] memcached shrunk → {self.memcached_cores} (core {released} freed)")
+        print(f"[CTRL] memcached shrunk -> {self.memcached_cores} (core {released} freed)")
         # Offer the released core to a running job
         self._offer_core_to_batch(released)
 
+
     def _offer_core_to_batch(self, core: int) -> None:
-        """Give *core* to a running batch job that doesn't already have it."""
+        """Give core to a running batch job that doesn't already have it."""
         for name, info in self.running.items():
             if core not in info["cores"]:
                 new_cores = sorted(info["cores"] + [core])
@@ -301,18 +312,20 @@ class Controller:
                 except docker.errors.APIError as exc:
                     print(f"[CTRL] docker update for {name} failed: {exc}")
                     return
+
                 info["cores"] = new_cores
                 self.logger.update_cores(info["job_enum"], new_cores)
-                print(f"[CTRL] Gave core {core} to {name} → {new_cores}")
+                print(f"[CTRL] Gave core {core} to {name} -> {new_cores}")
                 return
-        # No running job; leave the core free for the next job to pick up
+        # No running job: leave the core free for the next job to pick up
 
-    # ── Batch-job lifecycle ───────────────────────────────────────────────────
 
+    #  Batch-job lifecycle
     def _start_next_job(self) -> None:
         """Launch the next queued job if resources permit."""
         if not self.queue:
             return
+
         if len(self.running) >= MAX_CONCURRENT_JOBS:
             return
 
@@ -325,7 +338,7 @@ class Controller:
         cmd = cmd_template.format(n=threads)
         cpuset = cores_to_cpuset(cores)
 
-        print(f"[CTRL] Starting {job_enum.value} on cores {cores}, {threads} threads …")
+        print(f"[CTRL] Starting {job_enum.value} on cores {cores}, {threads} threads ...")
         try:
             container = self.docker.containers.run(
                 image,
@@ -348,6 +361,7 @@ class Controller:
         self.logger.job_start(job_enum, cores, threads)
         self.queue.pop(0)
 
+
     def _check_finished_jobs(self) -> None:
         """Detect completed containers, log them, and reclaim their cores."""
         finished: list[str] = []
@@ -366,11 +380,12 @@ class Controller:
                 if exit_code == 0:
                     print(f"[CTRL] {name} completed successfully")
                 else:
-                    print(f"[CTRL] {name} exited with code {exit_code} — marking done")
+                    print(f"[CTRL] {name} exited with code {exit_code} - marking done")
                     self.logger.custom_event(
                         info["job_enum"], f"exit_code={exit_code}"
                     )
                 self.logger.job_end(info["job_enum"])
+
                 try:
                     info["container"].remove()
                 except docker.errors.APIError:
@@ -383,15 +398,17 @@ class Controller:
         if finished:
             self._rebalance_batch_cores()
 
+
     def _rebalance_batch_cores(self) -> None:
         """After a job finishes, redistribute free cores evenly among remaining jobs."""
         if not self.running:
             return
+
         free = self._free_cores()
         if not free:
             return
 
-        # Give each running job one extra core from the free pool (round-robin)
+        # Give each running job one extra core from the free pool, round-robin
         for core in free:
             for name, info in self.running.items():
                 if core not in info["cores"]:
@@ -400,35 +417,35 @@ class Controller:
                         info["container"].update(cpuset_cpus=cores_to_cpuset(new_cores))
                         info["cores"] = new_cores
                         self.logger.update_cores(info["job_enum"], new_cores)
-                        print(f"[CTRL] Gave free core {core} to {name} → {new_cores}")
+                        print(f"[CTRL] Gave free core {core} to {name} -> {new_cores}")
                     except docker.errors.APIError as exc:
                         print(f"[CTRL] Rebalance update failed for {name}: {exc}")
                     break
 
-    # ── Main loop ─────────────────────────────────────────────────────────────
 
+    # Main loop
     def run(self) -> None:
         try:
             self._init_memcached()
 
             while not self._stop:
-                # 1. Reap finished jobs and rebalance cores
+                # Reap finished jobs and rebalance cores
                 prev = len(self.running)
-                self._check_finished_jobs()
+                self._check_finished_jobs() # autoremove=False to get logs from stopped containers
 
-                # 2. Adjust memcached cores based on current CPU utilisation
+                # Adjust memcached cores based on current CPU utilization
                 if self.memcached_pid:
                     cpu = read_memcached_cpu(
                         self.memcached_pid, len(self.memcached_cores)
                     )
                     self._adjust_memcached(cpu)
 
-                # 3. Start a new batch job if resources are available
+                # Start a new batch job if resources are available
                 self._start_next_job()
 
-                # 4. Exit when every job has finished
+                # Exit when every job has finished
                 if not self.queue and not self.running:
-                    print("[CTRL] All batch jobs finished — controller exiting.")
+                    print("[CTRL] All batch jobs finished, controller exiting.")
                     break
 
                 time.sleep(POLL_INTERVAL)
@@ -438,10 +455,11 @@ class Controller:
         finally:
             self._shutdown()
 
+
     def _shutdown(self) -> None:
-        """Stop any running containers and finalise the log."""
+        """Stop any running containers and finalize the log."""
         for name, info in self.running.items():
-            print(f"[CTRL] Stopping {name} …")
+            print(f"[CTRL] Stopping {name} ...")
             try:
                 info["container"].stop(timeout=10)
                 info["container"].remove()
@@ -450,10 +468,9 @@ class Controller:
             self.logger.job_end(info["job_enum"])
 
         self.logger.end()
-        print(f"[CTRL] Log written → {self.logger.get_file_name()}")
+        print(f"[CTRL] Log written -> {self.logger.get_file_name()}")
 
 
-# ─── Entry point ──────────────────────────────────────────────────────────────
-
+# Entry point
 if __name__ == "__main__":
     Controller().run()
