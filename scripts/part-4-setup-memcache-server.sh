@@ -7,13 +7,15 @@
 
 set -euo pipefail
 
+export DEBIAN_FRONTEND=noninteractive
+
 MEMCACHED_THREADS=3
 MEMCACHED_MEMORY_MB=6144   # ~6 GB; n2d-highmem-4 has 32 GB RAM
 
 # Install memcached
 echo "[SETUP] Installing memcached ..."
 sudo apt-get update -qq
-sudo apt-get install -y memcached libmemcached-tools
+sudo apt-get install -y -o Dpkg::Options::="--force-confold" memcached libmemcached-tools
 
 # Configure memcached
 INTERNAL_IP=$(hostname -I | awk '{print $1}')
@@ -32,7 +34,7 @@ sudo systemctl --no-pager status memcached
 
 # Install Docker
 echo "[SETUP] Installing Docker ..."
-sudo apt-get install -y ca-certificates curl
+sudo apt-get install -y -o Dpkg::Options::="--force-confold" ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
     -o /etc/apt/keyrings/docker.asc
@@ -45,7 +47,7 @@ echo \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 sudo apt-get update -qq
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+sudo apt-get install -y -o Dpkg::Options::="--force-confold" docker-ce docker-ce-cli containerd.io
 
 # Allow docker without sudo
 sudo usermod -aG docker "$USER"
@@ -54,7 +56,7 @@ echo "        Alternatively run:  newgrp docker"
 
 # Install Python deps
 echo "[SETUP] Installing Python dependencies ..."
-sudo apt-get install -y python3-pip python3-venv
+sudo apt-get install -y -o Dpkg::Options::="--force-confold" python3-pip python3-venv
 
 python3 -m venv ~/controller-venv
 ~/controller-venv/bin/pip install --quiet docker psutil
