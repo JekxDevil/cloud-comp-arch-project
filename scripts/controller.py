@@ -30,8 +30,12 @@ import docker
 import psutil
 
 
-# Locate scheduler_logger.py which lives at repo root, one level up
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+# scheduler_logger.py is either in the same directory (VM deployment, both files
+# copied flat to /home/ubuntu/) or one level up (repo layout: scripts/controller.py
+# and scheduler_logger.py at root). Insert both so it works in either context.
+_here = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _here)
+sys.path.insert(0, os.path.join(_here, ".."))
 from scheduler_logger import SchedulerLogger, Job  # noqa: E402
 
 # Cluster topology
@@ -47,15 +51,15 @@ POLL_INTERVAL: float = 0.5    # seconds between controller iterations
 
 # CPU thresholds: fraction of per-core capacity, 0–100.
 # Memcached util is measured as total_cpu_pct / num_allocated_cores.
-CPU_HIGH: float = 80.0   # expand memcached if util/core exceeds this
-CPU_LOW:  float = 30.0   # shrink memcached if util/core falls below this
+CPU_HIGH: float = 75.0   # expand memcached if util/core exceeds this
+CPU_LOW:  float = 20.0   # shrink memcached if util/core falls below this
 
 # Hysteresis: require the condition to persist for N consecutive polls
 EXPAND_POLLS: int = 2    # react quickly to load spikes
-SHRINK_POLLS: int = 8    # be conservative before freeing cores
+SHRINK_POLLS: int = 30   # require 15 s of low CPU before freeing a core
 
 # Hard limits on memcached core count
-MEM_CORES_MIN: int = 1
+MEM_CORES_MIN: int = 2   # always keep 2 cores: handles up to ~60K QPS safely
 MEM_CORES_MAX: int = 3   # always leave at least 1 core for batch jobs
 
 # Maximum concurrent batch containers: 1 avoids LLC thrashing between jobs
@@ -466,6 +470,16 @@ class Controller:
             except docker.errors.APIError:
                 pass
             self.logger.job_end(info["job_enum"])
+
+        # Restore memcached to all cores so it handles remaining mcperf load
+        # at full capacity after batch jobs are done.
+        if self.memcached_pid and self.memcached_cores != TOTAL_CORES:
+            try:
+                taskset_pid(self.memcached_pid, TOTAL_CORES)
+                self.logger.update_cores(Job.MEMCACHED, TOTAL_CORES)
+                print(f"[CTRL] memcached restored to all cores {TOTAL_CORES}")
+            except Exception as exc:
+                print(f"[CTRL] Could not restore memcached cores: {exc}")
 
         self.logger.end()
         print(f"[CTRL] Log written -> {self.logger.get_file_name()}")
