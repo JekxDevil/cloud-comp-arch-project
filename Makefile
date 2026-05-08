@@ -2,7 +2,7 @@
 # - mutex use of cluster in gcloud
 
 delete-cluster:
-	kops delete cluster --yes part1.k8s.local
+	kops delete cluster --yes part$(PART).k8s.local
 
 
 start-part-1:
