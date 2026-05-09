@@ -1,6 +1,18 @@
 # Assumptions:
 # - mutex use of cluster in gcloud
 
+# Part 4 run number (default 1); override with: make start-part-4-3 RUN=2
+RUN ?= 1
+
+# Part 4 Q3: 15-second QPS intervals, seed=2345, results in data/part-4/
+start-part-4-3:
+	bash scripts/part-4.sh --run-number $(RUN)
+
+# Part 4 Q4: 5-second QPS intervals, seed=2345, results in data/part-4-q4/
+start-part-4-4:
+	bash scripts/part-4.sh --run-number $(RUN) --qps-interval 5 --data-dir data/part-4-q4
+
+
 delete-cluster:
 	kops delete cluster --yes part$(PART).k8s.local
 

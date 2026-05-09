@@ -18,12 +18,14 @@ Assumptions:
     - scheduler_logger.py lives one directory above this file (../scheduler_logger.py).
 """
 
+import csv
 import os
 import sys
 import time
 import signal
 import subprocess
 import shlex
+from datetime import datetime
 from typing import Optional
 
 import docker
@@ -189,6 +191,19 @@ class Controller:
         self._stop = False
         signal.signal(signal.SIGINT,  self._on_signal)
         signal.signal(signal.SIGTERM, self._on_signal)
+
+        # Per-core CPU utilization log
+        _ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self._cpu_log_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            f"cpu_log_{_ts}.csv",
+        )
+        self._cpu_log_fh = open(self._cpu_log_path, "w", newline="")
+        self._cpu_writer = csv.writer(self._cpu_log_fh)
+        self._cpu_writer.writerow(["timestamp", "core0", "core1", "core2", "core3"])
+        self._cpu_log_fh.flush()
+        # Warm-up call so the first real sample is accurate
+        psutil.cpu_percent(percpu=True)
 
 
     def _on_signal(self, _sig, _frame) -> None:
@@ -444,6 +459,13 @@ class Controller:
                     )
                     self._adjust_memcached(cpu)
 
+                # Log per-core CPU utilization
+                per_core = psutil.cpu_percent(percpu=True)
+                self._cpu_writer.writerow(
+                    [datetime.now().isoformat()] + [f"{v:.2f}" for v in per_core[:4]]
+                )
+                self._cpu_log_fh.flush()
+
                 # Start a new batch job if resources are available
                 self._start_next_job()
 
@@ -483,6 +505,13 @@ class Controller:
 
         self.logger.end()
         print(f"[CTRL] Log written -> {self.logger.get_file_name()}")
+
+        # Close CPU log
+        try:
+            self._cpu_log_fh.close()
+            print(f"[CTRL] CPU log written -> {self._cpu_log_path}")
+        except Exception:
+            pass
 
 
 # Entry point

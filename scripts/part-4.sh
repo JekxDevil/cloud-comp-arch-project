@@ -21,13 +21,16 @@ SSH_OPTS="-i $SSH_KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/nul
 
 RUN_NUMBER=1
 QPS_SEED=2345          # Part 4 Q3 seed
-QPS_INTERVAL=15        # seconds per load step (Q3)
+QPS_INTERVAL=15        # seconds per load step (Q3); override with --qps-interval
 MCPERF_DURATION=1800   # 30 min
+DATA_DIR="data/part-4" # local results directory; override with --data-dir
 
 # Parse args
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --run-number) RUN_NUMBER="$2"; shift 2 ;;
+    --run-number)   RUN_NUMBER="$2";  shift 2 ;;
+    --qps-interval) QPS_INTERVAL="$2"; shift 2 ;;
+    --data-dir)     DATA_DIR="$2";    shift 2 ;;
     *) echo "Unknown arg: $1"; exit 1 ;;
   esac
 done
@@ -144,7 +147,7 @@ log "mcperf trace finished."
 
 # Collect results
 log "Collecting results ..."
-LOCAL_RESULTS="$PROJECT_ROOT/data/part-4/run_${RUN_NUMBER}"
+LOCAL_RESULTS="$PROJECT_ROOT/$DATA_DIR/run_${RUN_NUMBER}"
 mkdir -p "$LOCAL_RESULTS"
 
 # mcperf output
@@ -157,6 +160,17 @@ CONTROLLER_LOG=$(ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
 if [[ -n "$CONTROLLER_LOG" ]]; then
   scp $SSH_OPTS "ubuntu@$MEMCACHE_EXT:$CONTROLLER_LOG" \
       "$LOCAL_RESULTS/jobs_${RUN_NUMBER}.txt"
+fi
+
+# Per-core CPU log (cpu_log_*.csv produced by controller.py)
+CPU_LOG=$(ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
+  "ls -t ~/cpu_log_*.csv 2>/dev/null | head -1")
+if [[ -n "$CPU_LOG" ]]; then
+  scp $SSH_OPTS "ubuntu@$MEMCACHE_EXT:$CPU_LOG" \
+      "$LOCAL_RESULTS/cpu_${RUN_NUMBER}.csv"
+  log "CPU log collected -> $LOCAL_RESULTS/cpu_${RUN_NUMBER}.csv"
+else
+  log "Warning: no cpu_log_*.csv found on memcache-server"
 fi
 
 log "Results saved to $LOCAL_RESULTS/"
