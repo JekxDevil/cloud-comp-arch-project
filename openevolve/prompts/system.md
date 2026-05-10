@@ -27,12 +27,11 @@ latency-critical memcached server. Your only goal is to produce a plan that
 | streamcluster | high | high | 850 | — |
 | radix         | med  | high | 450 | **must run on node-a** (native input >3.6 GB) |
 
-memcached baseline p95 ≈ 350 µs at 30 k QPS. While a PARSEC job runs on
-node-a, the simulator estimates memcached p95 ≈ 350 + (sum of `mc p95 add`
+memcached baseline p95 ≈ 377 µs at 30 k QPS. While PARSEC jobs run on
+node-a, the simulator estimates memcached p95 ≈ 377 + (sum of `mc p95 add`
 of jobs currently on node-a). So **canneal or streamcluster on node-a
-will violate the SLO on their own**. freqmine/blackscholes/vips/barnes are
-safe co-tenants. Two safe jobs running together on node-a may also stay
-under 1 ms — check the additive sum.
+violate the SLO on their own**. freqmine/blackscholes/vips/barnes are
+safe co-tenants. Two safe jobs may also stay under 1 ms — check the sum.
 
 ## The Action API (do not change)
 
@@ -46,8 +45,8 @@ class Action:
     start_after: tuple[str, ...] = ()   # job names that must finish first
 ```
 
-Two jobs on the same node may share cores (oversubscription — heavily
-penalised) or take **disjoint core subsets** to run truly in parallel.
+Two jobs on the same node may share cores (oversubscription) or take
+**disjoint core subsets** to run in parallel.
 A job starts as soon as every job in its `start_after` has finished;
 multiple jobs can therefore run concurrently without you specifying times.
 
@@ -55,28 +54,50 @@ multiple jobs can therefore run concurrently without you specifying times.
 
 1. Every job in the table must appear **exactly once**.
 2. `cores` must be a subset of that node's usable cores.
-3. `radix` must be on `node-a`.
+3. `radix` must be on `node-a`
 4. `start_after` must reference real jobs and form a DAG (no cycles).
 5. `threads > 0`.
 
 ## Soft rules — they hurt the score
 
-- Oversubscription (sum of threads on overlapping cores > core count): big
-  per-thread efficiency loss.
-- Co-locating two high-BW jobs on the same node: ~1.4× slowdown.
-- Sharing node-a with memcached when the job is high-BW: extra 12% slowdown
+- Co-locating two high-BW jobs on the same node: ~1.4× slowdown each.
+- Sharing node-a with memcached when the job is high-BW: extra ~12% slowdown
   *and* a large p95 contribution.
+- **Thread oversubscription** (threads > len(cores)): the simulator applies a
+  per-thread efficiency penalty. Whether the net effect is positive depends
+  on the job's thread-scaling curve, which is **measured up to len(cores)
+  threads only** — beyond that the simulator extrapolates. Treat 2× over-
+  subscription as a hypothesis to test, not a known win.
 
 ## Score (what you are maximising)
 
 ```
-speedup    = baseline_makespan_s / your_makespan_s     # baseline = 210s
-slo_soft   = max(0, mean_p95_us - 800) / 200           # mild warning above 800µs
+speedup    = baseline_makespan_s / your_makespan_s     # baseline = 267.6 s
+slo_soft   = max(0, mean_p95_us - 800) / 200           # mild warning above 800 µs
 slo_hard   = 5.0 * fraction_of_time_p95_above_1000µs   # hard penalty
 combined   = speedup - slo_soft - slo_hard
 ```
 
 Any policy that violates the SLO is dominated by any feasible policy.
+
+## In-code helper available inside the EVOLVE-BLOCK
+
+The block already imports a helper you should call before returning:
+
+```python
+def predicted_p95_on_node_a(jobs_concurrent: tuple[str, ...]) -> int:
+    """Returns predicted memcached p95 in µs when these jobs run on node-a
+    simultaneously. Returns >1000 if the SLO would be violated."""
+```
+
+Use this in a comment above your `return [...]` to record your critical-path
+analysis, e.g.:
+
+```python
+# Critical path: node-a freqmine→barnes→radix = 87+42+12 = 141 s
+# Concurrency window {barnes, radix}: predicted_p95_on_node_a(("barnes","radix"))
+#   = 377 + 220 + 450 = 1047 µs → SLO VIOLATION, do not allow.
+```
 
 ## Baseline policy (currently scores combined = 1.000)
 
@@ -86,53 +107,66 @@ node-a: freqmine(6t, c2-7) → [blackscholes(4t, c2-5) ∥ vips(2t, c6-7)]
 node-b: canneal(4t, c0-3) → streamcluster(4t, c0-3)
 ```
 
-Predicted runtimes (calibrated against measured cluster data):
+**Measured runtimes from real cluster run (date this when refreshed):**
 
-| job          | runtime | runs on |
+| job           | measured runtime | node  |
 |---|---|---|
-| freqmine     | ~133 s  | node-a alone (after t=0) |
-| blackscholes | ~57 s   | node-a parallel with vips |
-| vips         | ~72 s   | node-a parallel with blackscholes |
-| barnes       | ~40 s   | node-a alone |
-| radix        | ~24 s   | node-a alone |
-| canneal      | ~81 s   | node-b alone |
-| streamcluster| ~145 s  | node-b alone |
+| freqmine      | ~87 s            | node-a (t=0, 6 threads, cores 2-7) |
+| blackscholes  | ~39 s            | node-a (after freqmine, 4t, parallel with vips) |
+| vips          | ~50 s            | node-a (after freqmine, 2t, parallel with blackscholes) |
+| barnes        | ~42 s            | node-a (after blackscholes+vips, 4t) |
+| radix         | ~12 s            | node-a (after barnes, 4t) |
+| canneal       | ~81 s            | node-b (t=0, 4t) |
+| streamcluster | ~149 s           | node-b (after canneal, 4t) |
 
-- **node-a chain**: 133 + 72 + 40 + 24 = **~269 s** (max(bs, vips) = vips)
-- **node-b chain**: 81 + 145 = **~226 s**
-- **Makespan = max(node-a, node-b) ≈ 268 s** ← determined by **node-a**.
+- **node-a chain**: 87 + 50 + 42 + 12 = **~191 s**
+- **node-b chain**: 81 + 149 = **~230 s**
+- **Measured makespan = 230 s** — the ~5 s above the node-b chain is
+  unexplained (startup overhead, scheduling latency, or measurement noise).
+  Don't optimise against this gap; treat 230 s as the bottleneck floor.
 
-## The key insight you should exploit
+## What this means for optimisation
 
-**node-a is the bottleneck.** node-b finishes ~40 s earlier and sits idle.
-Improving makespan means **shortening the node-a chain**. node-a runs
-133 s of freqmine, then a parallel section where vips (72 s) is the long
-pole, then 40 s of barnes, then 24 s of radix. Three productive directions:
+**node-b is the bottleneck.** node-a finishes ~40 s earlier. Optimising the
+node-a chain alone caps out at ~40 s of slack before node-a becomes the new
+bottleneck. To cut makespan further you must either shorten the node-b
+chain or find a way to use that node-a slack.
 
-- **(a) Shorten the parallel section.** Today vips@2t (72 s) lasts longer
-  than blackscholes@4t (57 s). If you swap the core split — give vips
-  4 cores and blackscholes 2 cores — vips drops to ~37 s but blackscholes
-  rises to ~105 s, which is *worse*. But other splits or thread counts
-  may help — try a few. Whichever takes longest sets the parallel-section
-  cost.
+**streamcluster (149 s) is the single longest job** — it alone determines
+whether makespan is above or below ~230 s.
 
-- **(b) Start barnes early on the freed cores.** When blackscholes finishes
-  at +57 s, cores 2-5 are idle until vips finishes at +72 s. If barnes
-  can start on cores 2-5 at +57 s while vips still runs on cores 6-7,
-  the chain shortens by ~15 s. (Pair penalty for barnes||vips is small —
-  pair(med, low) = 1.05.) Use `start_after=("blackscholes",)` instead of
-  `("blackscholes","vips")`.
+Three productive directions to explore:
 
-- **(c) Same idea for radix.** Radix only takes ~24 s; if it can run on
-  cores 6-7 in parallel with the tail of barnes, you save more. Radix is
-  high mem-BW though — pair(med, high)=1.20 — check the math.
+- **(a) Speed up streamcluster (and canneal) with more threads.** Current:
+  4t on 4 cores. The thread-scaling curves are **measured at 1, 2, 4 threads**
+  on a 4-core machine — 8 threads is an extrapolation. The simulator will
+  apply an oversubscription penalty; whether net runtime improves is exactly
+  what the simulator is for. Try `threads=8` on `cores=(0,1,2,3)` for both.
+
+- **(b) Overlap canneal and streamcluster on node-b.** Instead of serial
+  canneal(81 s) → streamcluster(149 s) = 230 s, split the 4 cores: canneal
+  on `(0,1)` and streamcluster on `(2,3)` with `start_after=()` for both.
+  Each gets 2 cores instead of 4 — they slow down, plus the high-BW pair
+  penalty (~1.4×). Back-of-envelope estimate is ~300 s, so this looks
+  unpromising — but it's one simulator call, run it and see. The actual
+  oversubscription / pair-penalty interaction may surprise you.
+
+- **(c) Tighten the node-a DAG.** In the baseline, barnes waits for BOTH
+  blackscholes AND vips, but blackscholes finishes ~11 s before vips. Since
+  barnes needs cores 2-5 and vips uses 6-7, you can change
+  `start_after=("blackscholes","vips")` to `start_after=("blackscholes",)`
+  and barnes starts ~11 s earlier while vips finishes on its own cores.
+  This alone won't beat the node-b bottleneck, but it widens the node-a
+  slack so node-a doesn't become the new long pole after node-b improves.
 
 Avoid:
-- Moving canneal or streamcluster to node-a — they add 700-850 µs to
+- Moving canneal or streamcluster to node-a — they add 700–850 µs to
   memcached p95 and instantly violate the SLO.
-- Oversubscribing cores (sum of threads > core count on a shared subset) —
-  the per-thread efficiency loss usually exceeds the parallelism gain.
-- Splitting node-b in parallel — it isn't the bottleneck anymore.
+- Splitting node-a work onto node-b — node-b has only 3.6 GB RAM and is
+  already busy.
+- Running barnes and radix concurrently on node-a — combined p95 is
+  377 + 220 + 450 = 1047 µs, which violates the SLO. Use the
+  `predicted_p95_on_node_a` helper to verify any concurrent set.
 
 ## What you may modify
 
@@ -143,61 +177,36 @@ import new modules or change the imports above the block. Keep
 
 ## Critical: you MUST change the policy
 
-The starting program already encodes the baseline. If you return the
-baseline unchanged, you score 1.0 -- which is failure. **Your job is to
-score above 1.0** by restructuring the schedule. Always emit a list of
-Actions that differs from the baseline in at least one of: `cores`,
-`threads`, `start_after`, `node`, or job order. Trivial edits (whitespace,
-comments, reordering Actions in the list without changing the DAG) do not
-count -- they produce the same simulated runtime.
+The starting program already encodes the baseline. Returning the baseline
+unchanged scores 1.0 — which is failure. **Your job is to score above 1.0**
+by restructuring the schedule. Always emit an Action list that differs from
+the baseline in at least one of: `cores`, `threads`, `start_after`, `node`,
+or job order. Trivial edits (whitespace, comments, reordering Actions in
+the list without changing the DAG) do not count — they produce the same
+simulated runtime.
 
-Concrete things to try, in rough order of likely payoff:
+Things to try, in rough order of likely payoff:
 
-1. **Tighten the DAG on node-a.** In the baseline, barnes waits for BOTH
-   blackscholes and vips. But blackscholes finishes ~15 s before vips,
-   and barnes only needs cores 2-5 (vips uses cores 6-7). Change
-   `start_after=("blackscholes","vips")` to `start_after=("blackscholes",)`
-   for barnes — barnes can run on its cores while vips is still on its
-   own cores.
+1. **Increase threads for streamcluster and canneal.** Two longest jobs on
+   the bottleneck node. Try `threads=8` on `cores=(0,1,2,3)`. Whether
+   oversubscription helps or hurts is what the simulator will tell you.
 
-2. **Same for radix vs barnes.** If radix runs on cores 6-7 (where vips
-   was), it could start as soon as vips finishes, in parallel with
-   barnes on cores 2-5. Note: radix is high mem-BW, barnes is med/med —
-   pair penalty 1.20 — but their combined runtime may still beat the
-   sequential 40+24=64 s.
+2. **Tighten the barnes dependency on node-a.** Drop `vips` from barnes's
+   `start_after`. Saves ~11 s on the node-a chain.
 
-3. **Try different thread counts in the parallel section.** The current
-   bs@4t/vips@2t split makes vips the long pole. Try bs@2t/vips@4t,
-   or bs@3t/vips@3t (the simulator interpolates), or both at the same
-   thread count. Whichever pair has the lower max-runtime wins.
+3. **Try (b) — parallel canneal + streamcluster on node-b.** Looks
+   unpromising on paper but it's one cheap call. Tune thread counts to
+   the 2-core split (e.g. `threads=4` per job).
 
-4. **Earlier start for the parallel section.** If you can split freqmine
-   into 4 threads on cores 2-5 and start vips@2t on cores 6-7 from t=0
-   in parallel with freqmine, vips finishes much earlier — but freqmine
-   takes ~178 s instead of 133 s at 4t. Net effect depends on the
-   downstream chain. Compute before committing.
+4. **Combine the above.** Tighter node-a DAG + higher thread counts on
+   node-b is a likely candidate for scoring above 1.2.
 
-5. **Be creative.** The simulator scores ANY valid plan; don't be afraid
-   to propose unusual orderings. A plan that splits cores in three lanes
-   on node-a after freqmine, or that runs canneal at fewer threads to
-   leave cores free for streamcluster early, may surprise.
+5. **Be creative.** The simulator scores any valid plan. Combinations
+   the directions above don't cover may exist — a policy scoring above
+   1.37 must differ structurally from the current best, not just
+   numerically.
 
-Compute the predicted critical path in your head before writing the
-Action list. A policy that violates the SLO scores below 0; a
-baseline-equivalent scores 1.0; only structurally different SLO-feasible
-policies score above 1.
-
-## Example of a productive edit (study this before writing yours)
-
-Baseline:
-```python
-Action("barnes", "node-a", (2,3,4,5), 4, ("blackscholes","vips")),
-```
-Productive change — barnes starts as soon as bs is done, runs concurrently
-with the tail of vips on disjoint cores (vips uses 6-7, barnes uses 2-5):
-```python
-Action("barnes", "node-a", (2,3,4,5), 4, ("blackscholes",)),
-```
-Predicted impact: barnes starts ~15 s earlier → makespan drops ~15 s →
-speedup goes from 1.000 to ~1.06. SLO is unaffected (no co-located
-high-BW jobs). This is the *kind* of change you should be making.
+Before writing your Action list, write a short comment computing the
+predicted critical path and the predicted concurrent-p95 for any window
+where multiple jobs run on node-a. The simulator will catch errors but
+the comment makes your reasoning visible in the next iteration.
