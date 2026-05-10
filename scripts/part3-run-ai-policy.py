@@ -220,3 +220,46 @@ def main(argv: list[str]) -> None:
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+
+
+
+"""
+
+If you want to run this maually ... then do this::
+
+
+**Tab 1 — agent A (leave running):**
+```bash
+gcloud compute ssh ubuntu@client-agent-a-7w1c --zone europe-west1-b \
+  --command "pkill -9 mcperf 2>/dev/null; sleep 1; cd ~/memcache-perf-dynamic && ./mcperf -T 2 -A -i 1"
+```
+
+**Tab 2 — agent B (leave running):**
+```bash
+gcloud compute ssh ubuntu@client-agent-b-58j0 --zone europe-west1-b \
+  --command "pkill -9 mcperf 2>/dev/null; sleep 1; cd ~/memcache-perf-dynamic && ./mcperf -T 4 -A -i 1"
+```
+
+**Tab 3 — mcperf measurement (run once per run, change `mcperf_1` to `mcperf_2`, `mcperf_3`):**
+```bash
+gcloud compute ssh ubuntu@client-measure-vqn6 --zone europe-west1-b \
+  --command "cd ~/memcache-perf-dynamic && ./mcperf -s 100.96.2.3 --loadonly && ./mcperf -s 100.96.2.3 -a 10.0.16.4 -a 10.0.16.7 --noload -T 6 -C 4 -D 4 -Q 1000 -c 4 -t 10 --scan 30000:30500:5 | tee mcperf_1.txt"
+```
+
+**Tab 4 — policy scheduler (run in parallel with Tab 3):**
+```bash
+python3 scripts/part3-run-ai-policy.py openevolve_runs/seeded_run/best/best_program.py
+```
+
+---
+
+**After each run — collect results (change numbers for run 2/3):**
+```bash
+mkdir -p results/ai
+gcloud compute scp ubuntu@client-measure-vqn6:~/memcache-perf-dynamic/mcperf_1.txt results/ai/mcperf_1.txt --zone europe-west1-b
+cp results.json results/ai/pods_1.json
+```
+
+
+
+"""

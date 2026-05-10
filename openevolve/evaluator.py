@@ -117,10 +117,9 @@ def _dag_edit_distance(candidate_actions, baseline_actions) -> int:
     return n_diff
 
 
-def _coaching_artifact(sim_res, plan) -> str:
-    """Return a natural-language diagnostic for the LLM. Identifies the
-    bottleneck node, idle time on the other node, and the most promising
-    DAG edge to consider loosening on the critical path."""
+def _coaching_artifact(sim_res, plan, dag_dist) -> str:
+    """Natural-language diagnostic. Goal: every artifact must contain at least
+    one *concrete* edit the LLM can attempt — not a problem statement."""
     timeline = sim_res.timeline
     if not timeline:
         return ""
@@ -132,50 +131,103 @@ def _coaching_artifact(sim_res, plan) -> str:
     other = "node-b" if bottleneck == "node-a" else "node-a"
     other_idle = abs(node_a_finish - node_b_finish)
 
-    lines = [
-        f"BOTTLENECK: {bottleneck} finishes at {max(node_a_finish, node_b_finish):.0f}s.",
-        f"  {other} finishes {other_idle:.0f}s earlier and then sits idle.",
-    ]
+    lines = []
 
-    # For each job on the bottleneck node, check if any of its start_after deps
-    # finished much earlier than the latest dep -- that's a candidate for loosening.
-    end_of = {j: e for s, e, j in timeline}
+    # ── Layer 0: tell the LLM if it's wasting effort ────────────────────────
+    # If the plan is identical to baseline, prose explanations are useless —
+    # the LLM has seen them many times. Be blunt.
+    if dag_dist == 0:
+        lines.append(
+            "WARNING: Your plan is byte-identical to the baseline. "
+            "Score 1.0 = failing grade. You MUST change at least one of: "
+            "thread count, core mask, start_after, or node assignment."
+        )
+
+    lines.append(
+        f"BOTTLENECK: {bottleneck} chain finishes at "
+        f"{max(node_a_finish, node_b_finish):.0f}s; {other} idle "
+        f"for {other_idle:.0f}s after."
+    )
+
+    # ── Layer 1: concrete suggestions tied to the actual plan ───────────────
+    # Walk the bottleneck node's jobs and propose the single highest-leverage
+    # change for each. Pick the longest-running job first.
     bottleneck_jobs = sorted(
         [(s, e, j) for s, e, j in timeline if by_job[j].node == bottleneck],
-        key=lambda x: x[0],
+        key=lambda x: -(x[1] - x[0]),  # longest first
     )
 
     suggestions = []
-    for s, e, j in bottleneck_jobs:
-        deps = list(by_job[j].start_after)
-        if len(deps) < 2:
-            continue
-        dep_finish = [(d, end_of.get(d, 0.0)) for d in deps]
-        latest_dep, latest_end = max(dep_finish, key=lambda x: x[1])
-        for d, d_end in dep_finish:
-            if d == latest_dep:
-                continue
-            slack = latest_end - d_end
-            if slack >= 5.0:
+    for s, e, j in bottleneck_jobs[:2]:  # top 2 longest
+        action = by_job[j]
+        runtime = e - s
+        runtime_s = sim_res.per_job_runtime_s.get(j, runtime)
+
+        # Heuristic 1: if threads == len(cores), suggest oversubscription.
+        # The simulator computes whether this nets out positive — we just
+        # nudge the LLM to try.
+        if action.threads == len(action.cores) and runtime_s > 60:
+            new_threads = action.threads * 2
+            suggestions.append(
+                f"  TRY: '{j}' runs {runtime_s:.0f}s at {action.threads} threads "
+                f"on {len(action.cores)} cores. Try threads={new_threads} "
+                f"(oversubscription) — the simulator will tell you if it helps."
+            )
+
+        # Heuristic 2: tight DAG edge — most relevant for the long-pole job.
+        deps = list(action.start_after)
+        end_of = {jj: ee for ss, ee, jj in timeline}
+        if len(deps) >= 2:
+            dep_finish = [(d, end_of.get(d, 0.0)) for d in deps]
+            latest_dep, latest_end = max(dep_finish, key=lambda x: x[1])
+            for d, d_end in dep_finish:
+                if d == latest_dep:
+                    continue
+                slack = latest_end - d_end
+                if slack >= 5.0:
+                    suggestions.append(
+                        f"  TRY: '{j}'.start_after currently waits for "
+                        f"{deps}; '{d}' finished {slack:.0f}s before "
+                        f"'{latest_dep}'. Drop '{d}' from start_after to "
+                        f"start ~{slack:.0f}s earlier."
+                    )
+                    break
+
+    # ── Layer 2: bottleneck-specific structural ideas ───────────────────────
+    if bottleneck == "node-b":
+        # Node-b has only canneal and streamcluster in the baseline shape.
+        # If they're sequential, suggest parallelism.
+        node_b_jobs = [a for a in plan if a.node == "node-b"]
+        if len(node_b_jobs) >= 2 and any(
+            other_b.job in a.start_after
+            for a in node_b_jobs
+            for other_b in node_b_jobs
+        ):
+            sc = next((a for a in node_b_jobs if a.job == "streamcluster"), None)
+            cn = next((a for a in node_b_jobs if a.job == "canneal"), None)
+            if sc and cn and (sc.job in cn.start_after or cn.job in sc.start_after):
                 suggestions.append(
-                    f"  IDEA: '{j}' depends on {deps}; '{d}' finished {slack:.0f}s "
-                    f"before '{latest_dep}'. If '{j}'s cores don't conflict with "
-                    f"whatever ran between them, drop '{d}' from start_after to start "
-                    f"~{slack:.0f}s earlier."
+                    "  TRY: canneal and streamcluster currently run sequentially "
+                    "on node-b. Try parallelizing on disjoint cores: canneal on "
+                    "(0,1) and streamcluster on (2,3), with start_after=() for "
+                    "both. Pair penalty (high,high)=1.4 may make this worse — "
+                    "but simulator will score it."
                 )
-                break  # one suggestion per job is enough
-        if suggestions:
-            break  # one suggestion total per evaluation keeps the prompt focused
 
-    if not suggestions and other_idle > 10:
+    if bottleneck == "node-a" and other_idle > 10:
+        # node-a is the bottleneck — node-b has finished; this is rarer.
         suggestions.append(
-            f"  IDEA: {other} sits idle for {other_idle:.0f}s. Could any work move there? "
-            f"(Beware: moving a high-mem-BW job to node-a violates the SLO.)"
+            "  TRY: node-a is the bottleneck. Tighten its DAG: which job's "
+            "start_after has the most slack? Cut the redundant dep."
         )
-    if not suggestions:
-        suggestions.append("  No obvious DAG edge to loosen; try changing thread/core split or job order.")
 
-    lines.extend(suggestions)
+    if not suggestions:
+        suggestions.append(
+            "  No obvious structural lever from the timeline. Try a thread "
+            "count change on the longest job, or revisit core partitioning."
+        )
+
+    lines.extend(suggestions[:2])  # cap at 2 to keep prompt focused
     return "\n".join(lines)
 
 
@@ -258,13 +310,18 @@ def evaluate(program_path: str) -> EvaluationResult:
     # Coaching artifact -- shown to the LLM in the next iteration's prompt.
     # Natural-language directive beats opaque numbers (per the
     # circle_packing_with_artifacts example pattern).
-    coaching = _coaching_artifact(res, actions)
+    coaching = _coaching_artifact(res, actions, dag_dist)
     artifacts = {
         "diagnosis": coaching,
         "predicted_per_job_runtime_s": ", ".join(
             f"{k}={v:.1f}s" for k, v in sorted(res.per_job_runtime_s.items(), key=lambda x: -x[1])
         ),
         "your_plan_differs_from_baseline_in_n_jobs": dag_dist,
+        "score_context": (
+            f"Your score: {combined:.3f}. Baseline: 1.000. "
+            f"Best achievable bound (theoretical, if all bottlenecks vanish): ~1.10-1.15. "
+            f"Trivial baseline edits score 1.000 = no progress."
+        ),
     }
     return EvaluationResult(metrics=metrics, artifacts=artifacts)
 
