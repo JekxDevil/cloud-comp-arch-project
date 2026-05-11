@@ -4,6 +4,8 @@
 # KOPS_STATE_STORE=gs://gs://cca-eth-2026-group-095-mariberger/ bash scripts/part-3b-setup.sh
 set -euo pipefail
 
+unset KOPS_STATE_STORE
+
 KOPS_STATE_STORE="${KOPS_STATE_STORE:-gs://cca-eth-2026-group-095-mariberger}"
 export KOPS_STATE_STORE
 CLUSTER_NAME="part3.k8s.local"

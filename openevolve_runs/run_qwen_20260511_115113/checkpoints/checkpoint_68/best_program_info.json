@@ -1,0 +1,20 @@
+{
+  "id": "74b2d2b2-f0b3-4dcd-a43c-547e953e6fce",
+  "generation": 2,
+  "iteration": 62,
+  "current_iteration": 68,
+  "metrics": {
+    "combined_score": 1.1564712479018118,
+    "makespan_s": 198.88086315789474,
+    "makespan_speedup": 1.1564712479018118,
+    "worst_p95_us": 800.0,
+    "mean_p95_us": 562.4619782422504,
+    "slo_violation_ratio": 0.0,
+    "slo_violation_us": 0.0,
+    "valid": 1.0,
+    "dag_edit_distance": 4.0
+  },
+  "language": "python",
+  "timestamp": 1778493155.599896,
+  "saved_at": 1778493164.0455942
+}

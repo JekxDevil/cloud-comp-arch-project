@@ -1,11 +1,8 @@
 # OpenEvolve config for Part 3.2
 #
 # Run from the repo root:
-#   export OPENAI_API_KEY=sk-rc-...
-#   openevolve-run --config openevolve/config.yaml \
-#                  -o openevolve_runs/run_$(date +%Y%m%d_%H%M%S) \
-#                  openevolve/initial_program.py \
-#                  openevolve/evaluator.py
+#   export OPENAI_API_KEY=sk-
+#   openevolve-run --config openevolve/config.yaml -o openevolve_runs/run_$(date +%Y%m%d_%H%M%S) openevolve/initial_program.py openevolve/evaluator.py
 
 max_iterations: 80              
 checkpoint_interval: 1          
