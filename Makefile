@@ -4,6 +4,11 @@
 # Part 4 run number (default 1); override with: make start-part-4-3 RUN=2
 RUN ?= 1
 
+# Part 4 Q1: T/C config sweep (5K–125K QPS), results in data/part-4-q1/
+# Optional flags: make start-part-4-1 ARGS="--skip-q1d"
+start-part-4-1:
+	bash scripts/part-4-q1.sh $(ARGS)
+
 # Part 4 Q3: 15-second QPS intervals, seed=2345, results in data/part-4/
 start-part-4-3:
 	bash scripts/part-4.sh --run-number $(RUN)
