@@ -23,7 +23,7 @@ RUN_NUMBER=1
 QPS_SEED=2345          # Part 4 Q3 seed
 QPS_INTERVAL=15        # seconds per load step (Q3); override with --qps-interval
 MCPERF_DURATION=1800   # 30 min
-DATA_DIR="data/part-4" # local results directory; override with --data-dir
+DATA_DIR="data/part-4-q3" # local results directory; override with --data-dir
 
 # Parse args
 while [[ $# -gt 0 ]]; do
@@ -93,6 +93,12 @@ done
 
 ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" "bash part-4-setup-memcache-server.sh"
 
+# Remove stale cpu_log and scheduler .txt files from any previous run so that
+# the collection step below cannot accidentally pick up an old file.
+log "Cleaning up stale log files on memcache-server ..."
+ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
+  "sudo rm -f ~/cpu_log_*.csv ~/*.txt 2>/dev/null; true"
+
 # Give Docker group change time to propagate to use 'sg docker'
 log "Pulling Docker images on memcache-server (this takes a few minutes) ..."
 ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
@@ -145,6 +151,24 @@ ssh $SSH_OPTS "ubuntu@$MEASURE_EXT" \
 
 log "mcperf trace finished."
 
+# Wait for the controller to exit naturally, it exits once all batch jobs are done,
+# which happens before mcperf finishes, but give it up to 60 s to flush its logs.
+log "Waiting for controller to finish ..."
+ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
+  "for i in \$(seq 1 30); do
+     pgrep -f 'python3.*controller.py' > /dev/null || break
+     echo \"  [WAIT] controller still running (attempt \$i/30)...\"
+     sleep 3
+   done
+   pgrep -f 'python3.*controller.py' > /dev/null \
+     && echo '[WARN] controller still running after 90 s - proceeding anyway' \
+     || echo '[OK] controller exited cleanly'"
+
+# Fix ownership so ubuntu can read root-owned files written by sudo-controller.
+log "Fixing file permissions on memcache-server ..."
+ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
+  "sudo chmod 644 ~/cpu_log_*.csv ~/*.txt 2>/dev/null; true"
+
 # Collect results
 log "Collecting results ..."
 LOCAL_RESULTS="$PROJECT_ROOT/$DATA_DIR/run_${RUN_NUMBER}"
@@ -154,24 +178,33 @@ mkdir -p "$LOCAL_RESULTS"
 scp $SSH_OPTS "ubuntu@$MEASURE_EXT:~/mcperf_run_${RUN_NUMBER}.txt" \
     "$LOCAL_RESULTS/mcperf_${RUN_NUMBER}.txt"
 
-# Controller log (jobs_i.txt)
+# Controller log (jobs_i.txt), match only scheduler_logger output files
 CONTROLLER_LOG=$(ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
   "ls -t ~/*.txt 2>/dev/null | head -1")
 if [[ -n "$CONTROLLER_LOG" ]]; then
   scp $SSH_OPTS "ubuntu@$MEMCACHE_EXT:$CONTROLLER_LOG" \
       "$LOCAL_RESULTS/jobs_${RUN_NUMBER}.txt"
+  log "Jobs log collected -> $LOCAL_RESULTS/jobs_${RUN_NUMBER}.txt"
+else
+  log "Warning: no jobs .txt found on memcache-server"
 fi
 
 # Per-core CPU log (cpu_log_*.csv produced by controller.py)
 CPU_LOG=$(ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
   "ls -t ~/cpu_log_*.csv 2>/dev/null | head -1")
-if [[ -n "$CPU_LOG" ]]; then
-  scp $SSH_OPTS "ubuntu@$MEMCACHE_EXT:$CPU_LOG" \
-      "$LOCAL_RESULTS/cpu_${RUN_NUMBER}.csv"
-  log "CPU log collected -> $LOCAL_RESULTS/cpu_${RUN_NUMBER}.csv"
-else
-  log "Warning: no cpu_log_*.csv found on memcache-server"
+if [[ -z "$CPU_LOG" ]]; then
+  error "cpu_log_*.csv not found on memcache-server - CPU data will be missing. \
+Check that the controller ran and exited cleanly (see $LOCAL_RESULTS/controller.log)."
 fi
+scp $SSH_OPTS "ubuntu@$MEMCACHE_EXT:$CPU_LOG" \
+    "$LOCAL_RESULTS/cpu_${RUN_NUMBER}.csv"
+
+# Verify the collected file is non-empty
+if [[ ! -s "$LOCAL_RESULTS/cpu_${RUN_NUMBER}.csv" ]]; then
+  error "cpu_${RUN_NUMBER}.csv was collected but is empty - something went wrong."
+fi
+log "CPU log collected -> $LOCAL_RESULTS/cpu_${RUN_NUMBER}.csv  \
+($(wc -l < "$LOCAL_RESULTS/cpu_${RUN_NUMBER}.csv") rows)"
 
 log "Results saved to $LOCAL_RESULTS/"
 log "Run $RUN_NUMBER complete."
