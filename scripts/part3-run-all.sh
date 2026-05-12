@@ -3,12 +3,14 @@ set -euo pipefail
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 RUNS=3
-CLIENT_MEASURE="client-measure-xs4h"
+CLIENT_MEASURE="client-measure-pdnk"
 ZONE="europe-west1-b"
-AGENT_A_IP="10.0.16.5"
-AGENT_B_IP="10.0.16.4"
+AGENT_A_IP="10.0.16.4"
+AGENT_B_IP="10.0.16.6"
 MCPERF_DIR="~/memcache-perf-dynamic"
 OUTPUT_DIR="results"
+# Swap to part3-scheduler-v2.py to test the wider-core policy (barnes/radix on 2-7)
+SCHEDULER="scripts/part3-scheduler.py"
 
 mkdir -p "${OUTPUT_DIR}"
 
@@ -33,8 +35,8 @@ for i in $(seq 1 "${RUNS}"); do
     sleep 10
 
     # Run scheduler — blocks until all jobs complete, then writes results.json
-    log "Starting scheduler..."
-    python3 scripts/part3-scheduler.py
+    log "Starting scheduler (${SCHEDULER})..."
+    python3 "${SCHEDULER}"
 
     cp results.json "${OUTPUT_DIR}/pods_${i}.json"
     log "Saved ${OUTPUT_DIR}/pods_${i}.json"

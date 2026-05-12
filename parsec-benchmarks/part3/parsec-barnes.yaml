@@ -12,7 +12,7 @@ spec:
         name: parsec-barnes
         imagePullPolicy: Always
         command: ["/bin/sh"]
-        args: ["-c", "taskset -c 2-5 ./run -a run -S splash2x -p barnes -i native -n 4"]
+        args: ["-c", "taskset -c 2-7 ./run -a run -S splash2x -p barnes -i native -n 6"]
         resources:
           requests:
             cpu: "500m"
