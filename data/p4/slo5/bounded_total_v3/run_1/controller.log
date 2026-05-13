@@ -1,0 +1,27 @@
+[CTRL] Process nice priority: 0 -> -20
+[CTRL] Policy: bounded_total_v3  (TOTAL-CPU mode | hysteresis=5iters | poll=0.1s slot_check=0.1s | init_tier=3 min_tier=2 cap_tier=3 | thresholds=friend_v2)
+[CTRL] memcached PID=11307
+[CTRL] memcached pinned to [0, 1, 2] (tier 3)
+[CTRL] slot_A: started blackscholes on cores=[3] threads=1
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (total=2.7% (rule <30.0))
+[CTRL] slot_B: started freqmine on cores=[2] threads=2
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (total=95.3% (rule >80.0))
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (total=28.8% (rule <30.0))
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (total=104.9% (rule >80.0))
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (total=19.4% (rule <30.0))
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (total=86.4% (rule >80.0))
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (total=27.9% (rule <30.0))
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (total=153.2% (rule >80.0))
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (total=19.3% (rule <30.0))
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (total=141.6% (rule >80.0))
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (total=19.4% (rule <30.0))
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (total=96.0% (rule >80.0))
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (total=29.0% (rule <30.0))
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (total=94.3% (rule >80.0))
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (total=28.9% (rule <30.0))
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (total=123.9% (rule >80.0))
+[CTRL] slot_A: blackscholes done
+[CTRL] slot_A: started barnes on cores=[3] threads=1
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (total=29.0% (rule <30.0))
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (total=95.3% (rule >80.0))
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (total=9.7% (rule <30.0))

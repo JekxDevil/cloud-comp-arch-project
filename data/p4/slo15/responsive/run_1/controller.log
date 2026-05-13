@@ -1,0 +1,21 @@
+[CTRL] Policy: responsive  (expand>75.0% up_dwell=1.5s | shrink<30.0% down_dwell=1.5s | panic>0.0% | poll=0.25s init_tier=1 cap_tier=3 lock=False)
+[CTRL] memcached PID=16581
+[CTRL] memcached pinned to [0] (tier 1)
+[CTRL] slot_A: started canneal on cores=[3] threads=1
+[CTRL] slot_B: started freqmine on cores=[1, 2] threads=2
+[CTRL] tier 1 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=78.0%)
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (cpu/core=90.2%)
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=28.9%)
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (cpu/core=88.0%)
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=27.6%)
+[CTRL] tier 2 → 1  mem=[0]  slot_B=[1, 2] (cpu/core=19.8%)
+[CTRL] tier 1 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=93.9%)
+[CTRL] tier 2 → 1  mem=[0]  slot_B=[1, 2] (cpu/core=15.8%)
+[CTRL] tier 1 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=86.0%)
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (cpu/core=80.5%)
+[CTRL] slot_A: canneal done
+[CTRL] slot_A: started barnes on cores=[3] threads=1
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=9.2%)
+[CTRL] tier 2 → 1  mem=[0]  slot_B=[1, 2] (cpu/core=11.8%)
+[CTRL] tier 1 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=98.1%)
+[CTRL] tier 2 → 1  mem=[0]  slot_B=[1, 2] (cpu/core=27.6%)

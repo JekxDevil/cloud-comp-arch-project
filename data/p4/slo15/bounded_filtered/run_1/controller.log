@@ -1,0 +1,10 @@
+[CTRL] Process nice priority: 0 -> -20
+[CTRL] Policy: bounded_filtered  (expand>55.0% up_dwell=0.0s | shrink<3.0% down_dwell=0.0s shrink_window=40 polls | panic>0.0% | poll=0.025s slot_check=0.075s | init_tier=2 min_tier=2 cap_tier=3 lock=False)
+[CTRL] memcached PID=123227
+[CTRL] memcached pinned to [0, 1] (tier 2)
+[CTRL] slot_A: started canneal on cores=[3] threads=1
+[CTRL] slot_B: started freqmine on cores=[2] threads=2
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (cpu/core=59.1% (raw))
+[CTRL] slot_A: canneal done
+[CTRL] slot_A: started barnes on cores=[3] threads=1
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (smoothed=2.7% raw=0.0%)
