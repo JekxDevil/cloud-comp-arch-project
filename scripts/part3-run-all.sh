@@ -3,7 +3,7 @@ set -euo pipefail
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 RUNS=3
-CLIENT_MEASURE="client-measure-pdnk"
+CLIENT_MEASURE="client-measure-wf2w"
 ZONE="europe-west1-b"
 AGENT_A_IP="10.0.16.4"
 AGENT_B_IP="10.0.16.6"

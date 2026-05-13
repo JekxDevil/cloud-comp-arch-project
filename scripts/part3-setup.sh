@@ -3,7 +3,7 @@
 # Run each section manually (or source this file step by step).
 set -e
 
-KOPS_STATE_STORE="gs://ca-eth-2026-group-095-atwang"
+KOPS_STATE_STORE="gs://cca-eth-2026-group-095-atwang"
 export KOPS_STATE_STORE
 
 # ---------------------------------------------------------------------------

@@ -15,7 +15,7 @@ import os
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+
 from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
 from datetime import datetime, timezone
 
@@ -193,7 +193,7 @@ def make_figure(run_idx, jobs, memcached_entry, mcperf_rows, title):
     ax_lat.set_ylim(0, y_top)
     ax_lat.set_xlim(x_min, x_max)
     ax_lat.axhline(SLO_MS, color='darkred', linestyle='--', linewidth=1.2, zorder=3)
-    ax_lat.text(x_max - 0.5, SLO_MS + y_top * 0.015, 'SLO Objective',
+    ax_lat.text(x_max - 0.5, SLO_MS + y_top * 0.015, 'SLO',
                 ha='right', va='bottom', fontsize=8, color='darkred')
     bk_y = y_top * 0.70
     ax_lat.annotate('', xy=(makespan, bk_y), xytext=(0.0, bk_y),
@@ -221,7 +221,11 @@ def make_figure(run_idx, jobs, memcached_entry, mcperf_rows, title):
         ax.barh(yc, width, height=y_hi - y_lo, left=left,
                 color=color, alpha=0.65, align='center',
                 edgecolor='white', linewidth=0.4, zorder=2)
-        ax.text(left + width / 2, yc, label,
+        # Clamp label x to the visible portion of the bar
+        vis_l  = max(left, x_min)
+        vis_r  = min(left + width, x_max)
+        text_x = (vis_l + vis_r) / 2
+        ax.text(text_x, yc, label,
                 ha='center', va='center', fontsize=7,
                 color=_text_color(color), fontweight='bold',
                 zorder=3, clip_on=True)
@@ -285,13 +289,6 @@ def make_figure(run_idx, jobs, memcached_entry, mcperf_rows, title):
             fontsize=9, fontweight='bold', va='center', ha='right',
             color='#111111', annotation_clip=False,
         )
-
-    # ── Shared legend ─────────────────────────────────────────────────────────
-    legend_jobs = ['memcached'] + list(dict.fromkeys(j[0] for j in jobs))
-    patches = [mpatches.Patch(color=JOB_COLORS.get(j, '#888888'), label=j)
-               for j in legend_jobs]
-    fig.legend(handles=patches, loc='lower center', ncol=len(patches),
-               fontsize=8, frameon=True, bbox_to_anchor=(0.5, 0.0))
 
     return fig
 
