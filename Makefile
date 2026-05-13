@@ -9,14 +9,33 @@ RUN ?= 1
 start-part-4-1:
 	bash scripts/part-4-q1.sh $(ARGS)
 
-# Part 4 Q3: 15-second QPS intervals, seed=2345, results in data/part-4/
+# Part 4 Q3: 15-second QPS intervals, seed=2345, results in data/part-4-q3/
 start-part-4-3:
-	bash scripts/part-4.sh --run-number $(RUN)
+	bash scripts/part-4.sh --run-number $(RUN) --data-dir data/part-4-q3
 
 # Part 4 Q4: 5-second QPS intervals, seed=2345, results in data/part-4-q4/
 start-part-4-4:
 	bash scripts/part-4.sh --run-number $(RUN) --qps-interval 5 --data-dir data/part-4-q4
 
+# Part 4 Q4 minimum-interval sweep: find smallest interval keeping SLO < 3%.
+# Run all intervals and repetitions unattended:
+#   make start-part-4-q4-sweep
+# Or collect a single (interval, run) pair manually:
+#   make start-part-4-int4 RUN=2
+start-part-4-q4-sweep:
+	bash scripts/part-4-q4-sweep.sh $(ARGS)
+
+start-part-4-int4:
+	bash scripts/part-4.sh --run-number $(RUN) --qps-interval 4 --data-dir data/part-4-q4-int4
+
+start-part-4-int3:
+	bash scripts/part-4.sh --run-number $(RUN) --qps-interval 3 --data-dir data/part-4-q4-int3
+
+start-part-4-int2:
+	bash scripts/part-4.sh --run-number $(RUN) --qps-interval 2 --data-dir data/part-4-q4-int2
+
+start-part-4-int1:
+	bash scripts/part-4.sh --run-number $(RUN) --qps-interval 1 --data-dir data/part-4-q4-int1
 
 delete-cluster:
 	kops delete cluster --yes part$(PART).k8s.local
