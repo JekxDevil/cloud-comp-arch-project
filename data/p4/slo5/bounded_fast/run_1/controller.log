@@ -1,0 +1,33 @@
+[CTRL] Policy: bounded_fast  (expand>75.0% up_dwell=0.0s | shrink<25.0% down_dwell=1.0s | panic>0.0% | poll=0.05s slot_check=0.25s | init_tier=2 min_tier=2 cap_tier=3 lock=False)
+[CTRL] memcached PID=87417
+[CTRL] memcached pinned to [0, 1] (tier 2)
+[CTRL] slot_A: started canneal on cores=[3] threads=1
+[CTRL] slot_B: started freqmine on cores=[2] threads=2
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (cpu/core=89.0%)
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=19.8%)
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (cpu/core=86.3%)
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=24.5%)
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (cpu/core=79.3%)
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=6.6%)
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (cpu/core=79.0%)
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=13.2%)
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (cpu/core=79.2%)
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=0.0%)
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (cpu/core=78.5%)
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=19.8%)
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (cpu/core=79.5%)
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=24.3%)
+[CTRL] tier 2 → 3  mem[CTRL] slot_A: blackscholes done
+[CTRL] slot_A: started radix on cores=[3] threads=1
+[CTRL] slot_A: radix done
+[CTRL] slot_A: started vips on cores=[3] threads=1
+e=79.1%)
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=19.9%)
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (cpu/core=79.5%)
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=24.8%)
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (cpu/core=79.1%)
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=23.7%)
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (cpu/core=79.2%)
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=24.8%)
+[CTRL] tier 2 → 3  mem=[0, 1, 2]  slot_B=PAUSED (cpu/core=89.2%)
+[CTRL] tier 3 → 2  mem=[0, 1]  slot_B=[2] (cpu/core=13.3%)

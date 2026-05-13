@@ -1,0 +1,52 @@
+2026-05-13T22:06:06.741801 start scheduler
+2026-05-13T22:06:06.785316 start memcached [0,1,2] 3
+2026-05-13T22:06:20.544340 start blackscholes [3] 1
+2026-05-13T22:06:20.562938 update_cores memcached [0,1]
+2026-05-13T22:06:20.953621 start freqmine [2] 2
+2026-05-13T22:06:23.570718 update_cores memcached [0,1,2]
+2026-05-13T22:06:23.602690 custom freqmine paused
+2026-05-13T22:07:13.510249 update_cores memcached [0,1]
+2026-05-13T22:07:13.526967 custom freqmine unpaused
+2026-05-13T22:07:13.550025 update_cores freqmine [2]
+2026-05-13T22:07:18.541960 update_cores memcached [0,1,2]
+2026-05-13T22:07:18.579028 custom freqmine paused
+2026-05-13T22:07:23.598208 update_cores memcached [0,1]
+2026-05-13T22:07:23.616730 custom freqmine unpaused
+2026-05-13T22:07:23.637950 update_cores freqmine [2]
+2026-05-13T22:07:28.956838 update_cores memcached [0,1,2]
+2026-05-13T22:07:28.988634 custom freqmine paused
+2026-05-13T22:07:33.627979 update_cores memcached [0,1]
+2026-05-13T22:07:33.645125 custom freqmine unpaused
+2026-05-13T22:07:33.668357 update_cores freqmine [2]
+2026-05-13T22:07:38.574798 update_cores memcached [0,1,2]
+2026-05-13T22:07:38.614581 custom freqmine paused
+2026-05-13T22:07:43.625693 update_cores memcached [0,1]
+2026-05-13T22:07:43.645227 custom freqmine unpaused
+2026-05-13T22:07:43.678350 update_cores freqmine [2]
+2026-05-13T22:07:53.543450 update_cores memcached [0,1,2]
+2026-05-13T22:07:53.572195 custom freqmine paused
+2026-05-13T22:07:58.605145 update_cores memcached [0,1]
+2026-05-13T22:07:58.620089 custom freqmine unpaused
+2026-05-13T22:07:58.641074 update_cores freqmine [2]
+2026-05-13T22:08:03.620823 update_cores memcached [0,1,2]
+2026-05-13T22:08:03.641471 custom freqmine paused
+2026-05-13T22:08:11.035162 update_cores memcached [0,1]
+2026-05-13T22:08:11.051529 custom freqmine unpaused
+2026-05-13T22:08:11.075823 update_cores freqmine [2]
+2026-05-13T22:08:13.488710 update_cores memcached [0,1,2]
+2026-05-13T22:08:13.531749 custom freqmine paused
+2026-05-13T22:09:08.654413 update_cores memcached [0,1]
+2026-05-13T22:09:08.670393 custom freqmine unpaused
+2026-05-13T22:09:08.692153 update_cores freqmine [2]
+2026-05-13T22:09:13.586730 update_cores memcached [0,1,2]
+2026-05-13T22:09:13.616014 custom freqmine paused
+2026-05-13T22:09:40.446481 end blackscholes
+2026-05-13T22:09:40.975142 start barnes [3] 1
+2026-05-13T22:09:43.586016 update_cores memcached [0,1]
+2026-05-13T22:09:43.602037 custom freqmine unpaused
+2026-05-13T22:09:43.624497 update_cores freqmine [2]
+2026-05-13T22:09:48.514203 update_cores memcached [0,1,2]
+2026-05-13T22:09:48.543793 custom freqmine paused
+2026-05-13T22:11:03.617216 update_cores memcached [0,1]
+2026-05-13T22:11:03.632993 custom freqmine unpaused
+2026-05-13T22:11:03.654189 update_cores freqmine [2]

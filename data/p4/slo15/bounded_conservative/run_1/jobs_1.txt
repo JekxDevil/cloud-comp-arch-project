@@ -1,0 +1,26 @@
+2026-05-13T12:01:53.543965 start scheduler
+2026-05-13T12:01:53.578301 start memcached [0,1] 3
+2026-05-13T12:01:53.806641 start canneal [3] 1
+2026-05-13T12:01:54.006145 start freqmine [2] 2
+2026-05-13T12:02:21.218879 update_cores memcached [0,1,2]
+2026-05-13T12:02:21.243357 custom freqmine paused
+2026-05-13T12:04:50.379476 update_cores memcached [0,1]
+2026-05-13T12:04:50.395760 custom freqmine unpaused
+2026-05-13T12:04:50.418027 update_cores freqmine [2]
+2026-05-13T12:05:05.384574 update_cores memcached [0,1,2]
+2026-05-13T12:05:05.410871 custom freqmine paused
+2026-05-13T12:05:20.421842 update_cores memcached [0,1]
+2026-05-13T12:05:20.437240 custom freqmine unpaused
+2026-05-13T12:05:20.460050 update_cores freqmine [2]
+2026-05-13T12:05:55.734174 end canneal
+2026-05-13T12:05:56.010415 start barnes [3] 1
+2026-05-13T12:06:05.395400 update_cores memcached [0,1,2]
+2026-05-13T12:06:05.437609 custom freqmine paused
+2026-05-13T12:06:20.377706 update_cores memcached [0,1]
+2026-05-13T12:06:20.393407 custom freqmine unpaused
+2026-05-13T12:06:20.415864 update_cores freqmine [2]
+2026-05-13T12:06:50.389581 update_cores memcached [0,1,2]
+2026-05-13T12:06:50.420029 custom freqmine paused
+2026-05-13T12:07:05.391084 update_cores memcached [0,1]
+2026-05-13T12:07:05.406719 custom freqmine unpaused
+2026-05-13T12:07:05.426424 update_cores freqmine [2]

@@ -1,0 +1,9 @@
+2026-05-13T13:35:40.956913 start scheduler
+2026-05-13T13:35:40.999932 start memcached [0,1] 3
+2026-05-13T13:35:46.453943 start canneal [3] 1
+2026-05-13T13:35:46.706707 start freqmine [2] 2
+2026-05-13T13:35:59.593553 update_cores memcached [0,1,2]
+2026-05-13T13:36:00.070992 custom freqmine paused
+2026-05-13T13:40:55.102859 update_cores memcached [0,1]
+2026-05-13T13:40:55.893773 custom freqmine unpaused
+2026-05-13T13:40:56.254739 update_cores freqmine [2]

@@ -1,0 +1,7 @@
+[CTRL] Policy: static  (expand>999.0% up_dwell=1.0s | shrink<-1.0% down_dwell=1.0s | panic>0.0% | poll=0.5s init_tier=2 cap_tier=2 lock=True)
+[CTRL] memcached PID=7516
+[CTRL] memcached pinned to [0, 1] (tier 2)
+[CTRL] slot_A: started canneal on cores=[3] threads=1
+[CTRL] slot_B: started freqmine on cores=[2] threads=2
+[CTRL] slot_A: canneal done
+[CTRL] slot_A: started barnes on cores=[3] threads=1
