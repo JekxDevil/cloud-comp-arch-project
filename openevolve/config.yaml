@@ -4,12 +4,12 @@
 #   export OPENAI_API_KEY=sk-
 #   openevolve-run --config openevolve/config.yaml -o openevolve_runs/run_$(date +%Y%m%d_%H%M%S) openevolve/initial_program.py openevolve/evaluator.py
 
-max_iterations: 80              
+max_iterations: 40              
 checkpoint_interval: 1          
 llm:
   api_base: "https://api.swissai.cscs.ch/v1"
-  #primary_model: "meta-llama/Llama-3.3-70B-Instruct"
-  primary_model: "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+  primary_model: "meta-llama/Llama-3.3-70B-Instruct"
+  #primary_model: "Qwen/Qwen3-Coder-30B-A3B-Instruct"
   temperature: 1.0
   top_p: 0.95
   max_tokens: 4096

@@ -63,16 +63,16 @@ def _wrap(plan_body: str, doc: str) -> str:
 
 SEEDS = {
     "baseline": (
-        "Hand-crafted Part 3.1 baseline.",
+        "Optimized baseline: 8t oversubscription on freqmine, canneal, streamcluster.",
         '''
 return [
-    Action("freqmine","node-a",(2,3,4,5,6,7),6),
+    Action("freqmine","node-a",(2,3,4,5,6,7),8),
     Action("blackscholes","node-a",(2,3,4,5),4,("freqmine",)),
     Action("vips","node-a",(6,7),2,("freqmine",)),
     Action("barnes","node-a",(2,3,4,5,6,7),6,("blackscholes","vips")),
     Action("radix","node-a",(2,3,4,5,6,7),8,("barnes",)),
-    Action("canneal","node-b",(0,1,2,3),4),
-    Action("streamcluster","node-b",(0,1,2,3),4,("canneal",)),
+    Action("canneal","node-b",(0,1,2,3),8),
+    Action("streamcluster","node-b",(0,1,2,3),8,("canneal",)),
 ]
 ''',
     ),

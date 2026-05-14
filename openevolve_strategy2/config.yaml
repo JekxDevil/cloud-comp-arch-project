@@ -1,0 +1,53 @@
+# OpenEvolve config for Strategy 2: real-cluster evaluation
+#
+# Prerequisites before running:
+#   1. Cluster is up with memcached running
+#   2. mcperf agents are running on client-agent-a and client-agent-b
+#   3. Environment variables are set:
+#        export CLIENT_MEASURE=client-measure-XXXX
+#        export AGENT_A_IP=10.0.16.X
+#        export AGENT_B_IP=10.0.16.X
+#        export MEMCACHED_IP=100.96.X.X
+#        export OPENAI_API_KEY=your-swissai-token
+#
+# Run:
+#   uv run openevolve-run \
+#     --config openevolve_strategy2/config.yaml \
+#     -o openevolve_runs/cluster_run \
+#     openevolve/initial_program.py \
+#     openevolve_strategy2/evaluator.py
+
+max_iterations: 15              # each iteration is ~5 min on real hardware
+checkpoint_interval: 1
+
+llm:
+  api_base: "https://api.swissai.cscs.ch/v1"
+  primary_model: "meta-llama/Llama-3.3-70B-Instruct"
+  temperature: 1.0
+  top_p: 0.95
+  max_tokens: 4096
+  timeout: 120
+
+prompt:
+  template_dir: "prompts"
+  system_message: "system"
+
+database:
+  population_size: 50           # smaller population for expensive evals
+  num_islands: 2                # fewer islands — each eval costs real time
+  elite_selection_ratio: 0.2
+  exploitation_ratio: 0.7       # exploit more, explore less — evals are expensive
+  feature_dimensions:
+    - "combined_score"
+    - "makespan_s"
+  feature_bins:
+    combined_score: 5
+    makespan_s: 5
+
+evaluator:
+  cascade_evaluation: false
+  parallel_evaluations: 1       # MUST be 1 — only one cluster
+  timeout: 600                  # 10 min max per eval (real cluster is slow)
+
+diff_based_evolution: false
+max_code_length: 50000

@@ -33,7 +33,7 @@ def build_plan() -> list[Action]:
     """
     return [
         # ── node-a chain ──────────────────────────────────────────────
-        Action(job="freqmine",     node="node-a", cores=(2, 3, 4, 5, 6, 7), threads=6,
+        Action(job="freqmine",     node="node-a", cores=(2, 3, 4, 5, 6, 7), threads=8,
                start_after=()),
         Action(job="blackscholes", node="node-a", cores=(2, 3, 4, 5),       threads=4,
                start_after=("freqmine",)),
@@ -45,9 +45,9 @@ def build_plan() -> list[Action]:
                start_after=("barnes",)),
 
         # ── node-b chain ──────────────────────────────────────────────
-        Action(job="canneal",       node="node-b", cores=(0, 1, 2, 3), threads=4,
+        Action(job="canneal",       node="node-b", cores=(0, 1, 2, 3), threads=8,
                start_after=()),
-        Action(job="streamcluster", node="node-b", cores=(0, 1, 2, 3), threads=4,
+        Action(job="streamcluster", node="node-b", cores=(0, 1, 2, 3), threads=8,
                start_after=("canneal",)),
     ]
 # EVOLVE-BLOCK-END
