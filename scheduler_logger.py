@@ -34,6 +34,10 @@ class SchedulerLogger:
             self.file.write(
                 LOG_STRING.format(timestamp=datetime.now().isoformat(), event=event, job_name=job_name.value,
                                 args=args).strip() + "\n")
+        # Flush after every event so partial logs are recoverable if the controller
+        # is killed without a clean shutdown, otherwise default block buffering
+        # holds up to ~8 KB and the on-disk file can be empty.
+        self.file.flush()
 
     def job_start(self, job: Job, initial_cores: list[str], initial_threads: int) -> None:
         assert job != Job.SCHEDULER, "You don't have to log SCHEDULER here"
