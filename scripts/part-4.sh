@@ -28,12 +28,21 @@ DATA_DIR="data/part-4-q3" # local results directory; override with --data-dir
 # Parse args
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --run-number)   RUN_NUMBER="$2";  shift 2 ;;
-    --qps-interval) QPS_INTERVAL="$2"; shift 2 ;;
-    --data-dir)     DATA_DIR="$2";    shift 2 ;;
+    --run-number)   RUN_NUMBER="$2";      shift 2 ;;
+    --qps-interval) QPS_INTERVAL="$2";    shift 2 ;;
+    --data-dir)     DATA_DIR="$2";        shift 2 ;;
+    --policy)       POLICY="$2";          shift 2 ;;
+    --duration)     MCPERF_DURATION="$2"; shift 2 ;;
     *) echo "Unknown arg: $1"; exit 1 ;;
   esac
 done
+
+# Build the env-var prefix that sudo will set on the controller process.
+# (sudo recognises VAR=value before the command and applies it to the child.)
+CONTROLLER_ENV=""
+if [[ -n "$POLICY" ]]; then
+  CONTROLLER_ENV="CONTROLLER_POLICY=$POLICY"
+fi
 
 log()   { echo "[INFO] $*"; }
 error() { echo "[ERROR] $*" >&2; exit 1; }
@@ -48,15 +57,22 @@ get_internal_ip() {
   kubectl get nodes -o wide | grep -E "^${prefix}" | awk '{print $6}'
 }
 
-# Cluster setup
-log "[SETUP CLUSTER] Creating / validating Part 4 cluster ..."
-if ! kops get cluster part4.k8s.local &>/dev/null; then
+# Cluster setup. Pass --name to every kops command so the script works even
+# when the kubectl context is unset (common in a fresh shell): kops would
+# otherwise infer the cluster from the kubectl context and fail with
+# "Error: --name is required" / "no context set in kubecfg".
+KOPS_CLUSTER=part4.k8s.local
+log "[SETUP CLUSTER] Creating / validating Part 4 cluster ($KOPS_CLUSTER) ..."
+if ! kops get cluster --name "$KOPS_CLUSTER" &>/dev/null; then
   PROJECT=$(gcloud config get-value project)
   kops create -f "$PROJECT_ROOT/part4.yaml"
-  kops create secret --name part4.k8s.local sshpublickey admin -i "$SSH_KEY.pub"
-  kops update cluster --name part4.k8s.local --yes --admin
+  kops create secret --name "$KOPS_CLUSTER" sshpublickey admin -i "$SSH_KEY.pub"
+  kops update cluster --name "$KOPS_CLUSTER" --yes --admin
 fi
-kops validate cluster --wait 10m
+# Refresh the kubectl context too — needed for `kubectl get nodes` below and
+# for kops itself when KOPS_CLUSTER_NAME isn't exported.
+kops export kubecfg --name "$KOPS_CLUSTER" --admin >/dev/null 2>&1 || true
+kops validate cluster --name "$KOPS_CLUSTER" --wait 10m
 kubectl get nodes -o wide
 
 # Gather IPs
@@ -95,9 +111,16 @@ ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" "bash part-4-setup-memcache-server.sh"
 
 # Remove stale cpu_log and scheduler .txt files from any previous run so that
 # the collection step below cannot accidentally pick up an old file.
-log "Cleaning up stale log files on memcache-server ..."
+# Also remove ANY leftover docker containers (running, paused, or exited)
+# the controller launches batch containers with fixed names like 'streamcluster',
+# and a leftover container would cause a 409 Conflict on every retry, silently
+# preventing any batch job from ever starting.
+log "Cleaning up stale log files and docker containers on memcache-server ..."
 ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
-  "sudo rm -f ~/cpu_log_*.csv ~/*.txt 2>/dev/null; true"
+  "sudo rm -f ~/cpu_log_*.csv ~/*.txt 2>/dev/null; \
+   sudo docker rm -f streamcluster freqmine canneal vips blackscholes barnes radix 2>/dev/null; \
+   sudo docker container prune -f 2>/dev/null; \
+   true"
 
 # Give Docker group change time to propagate to use 'sg docker'
 log "Pulling Docker images on memcache-server (this takes a few minutes) ..."
@@ -126,10 +149,10 @@ ssh $SSH_OPTS "ubuntu@$AGENT_EXT" \
 # sudo can keep inherited FDs open, preventing the remote shell from releasing
 # the SSH channel even with nohup+redirect; backgrounding locally sidesteps this.
 RESULTS_DIR="results_run_${RUN_NUMBER}"
-log "Launching controller on memcache-server ..."
+log "Launching controller on memcache-server (policy='${POLICY:-default}') ..."
 ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
   "mkdir -p /home/ubuntu/$RESULTS_DIR && \
-   nohup sudo /home/ubuntu/controller-venv/bin/python3 -u /home/ubuntu/controller.py \
+   nohup sudo $CONTROLLER_ENV /home/ubuntu/controller-venv/bin/python3 -u /home/ubuntu/controller.py \
      < /dev/null > /home/ubuntu/$RESULTS_DIR/controller.log 2>&1 &
    sleep 1 && pgrep -n -f 'python3.*controller.py' > /home/ubuntu/controller.pid || true
    echo '[CTRL] Controller started in background'" &
@@ -151,23 +174,53 @@ ssh $SSH_OPTS "ubuntu@$MEASURE_EXT" \
 
 log "mcperf trace finished."
 
-# Wait for the controller to exit naturally, it exits once all batch jobs are done,
-# which happens before mcperf finishes, but give it up to 60 s to flush its logs.
+# Wait for the controller to exit. For long runs (default 30 min) it finishes
+# on its own once the batch queue empties. For short search runs (5 min) the batch
+# queue is usually still running when mcperf ends: we send SIGTERM so the
+# controller's signal handler stops containers cleanly and flushes its logs.
+#
+# IMPORTANT: we use the saved PID file (/home/ubuntu/controller.pid) and `kill`
+# rather than `pkill -f`. pkill -f matches against the full command line, which
+# also matches the bash shell that sshd spawned to run this very script: its
+# argv contains the literal string 'python3.*controller.py', so pkill would
+# terminate our own SSH session before cleanup could finish, which would manifest as
+# `make: *** Error 255`).
 log "Waiting for controller to finish ..."
 ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
-  "for i in \$(seq 1 30); do
-     pgrep -f 'python3.*controller.py' > /dev/null || break
-     echo \"  [WAIT] controller still running (attempt \$i/30)...\"
+  "PID_FILE=/home/ubuntu/controller.pid
+   CTRL_PID=\$(cat \$PID_FILE 2>/dev/null || echo '')
+   if [ -z \"\$CTRL_PID\" ]; then
+     echo '[INFO] no controller.pid file - controller might not have started properly'
+     exit 0
+   fi
+   # Wait up to 90s for the controller to exit on its own.
+   for i in \$(seq 1 30); do
+     kill -0 \$CTRL_PID 2>/dev/null || break
+     echo \"  [WAIT] controller (PID=\$CTRL_PID) still running (attempt \$i/30)...\"
      sleep 3
    done
-   pgrep -f 'python3.*controller.py' > /dev/null \
-     && echo '[WARN] controller still running after 90 s - proceeding anyway' \
-     || echo '[OK] controller exited cleanly'"
+   if kill -0 \$CTRL_PID 2>/dev/null; then
+     echo \"[INFO] controller (PID=\$CTRL_PID) still running after 90s - sending SIGTERM for clean shutdown ...\"
+     sudo kill -TERM \$CTRL_PID 2>/dev/null || true
+     # Allow up to 30s for graceful shutdown (docker.stop has a 10s timeout per container).
+     for i in \$(seq 1 30); do
+       kill -0 \$CTRL_PID 2>/dev/null || break
+       sleep 1
+     done
+     if kill -0 \$CTRL_PID 2>/dev/null; then
+       echo '[WARN] still running after SIGTERM, sending SIGKILL'
+       sudo kill -KILL \$CTRL_PID 2>/dev/null || true
+     else
+       echo '[OK] controller terminated cleanly after SIGTERM'
+     fi
+   else
+     echo '[OK] controller exited on its own'
+   fi"
 
 # Fix ownership so ubuntu can read root-owned files written by sudo-controller.
 log "Fixing file permissions on memcache-server ..."
 ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
-  "sudo chmod 644 ~/cpu_log_*.csv ~/*.txt 2>/dev/null; true"
+  "sudo chmod 644 ~/cpu_log_*.csv ~/*.txt /home/ubuntu/results_run_*/controller.log 2>/dev/null; true"
 
 # Collect results
 log "Collecting results ..."
@@ -177,6 +230,13 @@ mkdir -p "$LOCAL_RESULTS"
 # mcperf output
 scp $SSH_OPTS "ubuntu@$MEASURE_EXT:~/mcperf_run_${RUN_NUMBER}.txt" \
     "$LOCAL_RESULTS/mcperf_${RUN_NUMBER}.txt"
+
+# Controller stdout/stderr log (essential for diagnosing failures, e.g. docker
+# 409 conflicts or unexpected exceptions in _start_slot).
+scp $SSH_OPTS "ubuntu@$MEMCACHE_EXT:/home/ubuntu/$RESULTS_DIR/controller.log" \
+    "$LOCAL_RESULTS/controller.log" 2>/dev/null \
+    && log "Controller log collected -> $LOCAL_RESULTS/controller.log" \
+    || log "Warning: controller.log not collected (may not exist)"
 
 # Controller log (jobs_i.txt), match only scheduler_logger output files
 CONTROLLER_LOG=$(ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
