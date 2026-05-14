@@ -2,16 +2,16 @@
 # Part 4 Q1 — Memcached T/C configuration sweep (QPS 5K–125K, --scan).
 #
 # Q1a: 9 configurations (T in {1,2,3} x C in {1,2,3}), 3 runs each.
-#       Results -> data/part-4-q1/q1a/t{T}_c{C}_run{N}.txt
+#       Results -> data/p4/q1/q1a/t{T}_c{C}_run{N}.txt
 #
 # Q1d: ALL T in {1,2,3} x C in {1,2,3}, 1 run each + CPU monitoring.
 #       Running all T values provides empirical data to justify the T
 #       chosen in Q1c (rather than picking T=3 by assumption).
-#       Results -> data/part-4-q1/q1d/t{T}_c{C}_mcperf.txt
-#                  data/part-4-q1/q1d/t{T}_c{C}_cpu.txt
+#       Results -> data/p4/q1/q1d/t{T}_c{C}_mcperf.txt
+#                  data/p4/q1/q1d/t{T}_c{C}_cpu.txt
 #
 # Usage:
-#   bash scripts/part-4-q1.sh [--skip-q1a] [--skip-q1d]
+#   bash scripts/q1.sh [--skip-q1a] [--skip-q1d]
 #
 # The script creates the Part 4 cluster if it does not already exist,
 # then installs mcperf on clients and configures memcached on the server.
@@ -25,7 +25,7 @@ SSH_OPTS="-i $SSH_KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/nul
 Q1A_RUNS=3      # runs per config for Q1a
 SKIP_Q1A=false
 SKIP_Q1D=false
-DATA_ROOT="$PROJECT_ROOT/data/part-4-q1"
+DATA_ROOT="$PROJECT_ROOT/data/p4/q1"
 
 # mcperf scan: 5K, 15K, ..., 125K  (13 steps x 2 s = 26 s per run)
 SCAN_ARGS="--noload -T 8 -C 8 -D 4 -Q 1000 -c 8 -t 2 --scan 5000:125000:10000"
