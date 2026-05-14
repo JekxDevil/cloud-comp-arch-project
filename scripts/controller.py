@@ -1,134 +1,355 @@
 #!/usr/bin/env python3
 """
-Part 4 Controller, dynamic scheduler for memcached + PARSEC batch jobs.
+Part 4 Controller — policy-search redesign for parallelism + responsiveness.
 
-Runs on the memcache-server VM (4-core n2d-highmem-4).
-- Memcached runs natively; CPU affinity is adjusted with taskset, as docker --cpuset-cpus does not work.
-- Batch jobs run in Docker; CPU affinity is updated via docker container update.
-- Controller polls memcached CPU utilization every POLL_INTERVAL seconds and
-  adjusts core assignments so the 0.8 ms p95 latency SLO is maintained.
+Static reservation (4-core VM):
+    core 0       -> memcached (always)
+    core 3       -> batch slot_A (always, 1 batch job pinned here)
+    cores [1,2]  -> dynamically reassigned between memcached and batch slot_B
+                    based on memcached CPU%.
 
-Usage: on the memcache-server VM run
-    python3 controller.py
+Three tiers (transition gated by a minimum-dwell timer, no consecutive-poll
+hysteresis since the QPS trace is random):
+    tier 1 (low load)  : mem=[0],       slot_A=[3], slot_B=[1, 2]
+    tier 2 (medium)    : mem=[0, 1],    slot_A=[3], slot_B=[2]
+    tier 3 (high)      : mem=[0, 1, 2], slot_A=[3], slot_B=PAUSED (docker pause)
 
-Assumptions:
-    - memcached is already installed and running (sudo systemctl start memcached).
-    - Docker is installed and the current user has permission to call the daemon
-      e.g. via `sudo usermod -a -G docker $USER`
-    - scheduler_logger.py lives one directory above this file (../scheduler_logger.py).
+Two batch jobs run concurrently whenever slot_B isn't paused — this is the
+core change vs. the legacy single-slot controller and the main lever for
+shrinking makespan.
+
+Policy is selected with env var CONTROLLER_POLICY:
+    static     : locked at tier 2 (memcached=[0,1], batch=[2,3]) - parallelism baseline.
+    responsive : tiers 1-3, dwell=1.5 s, expand=75%, shrink=30%  (default; balanced).
+    aggressive : tiers 1-3, dwell=0.5 s, expand=60%, shrink=40%  (fast reactions, may pause
+                 slot_B under sustained memcached load).
+    throughput : tiers 1-2 ONLY (cap=2 -> slot_B never paused), dwell=0.5 s,
+                 expand=85%, shrink=50%. Batch-first: memcached gets a second core only
+                 under severe pressure, snaps back to 1 core eagerly. Use this to minimise
+                 batch makespan at the cost of some SLO headroom.
+
+Usage (on memcache-server VM):
+    CONTROLLER_POLICY=throughput python3 controller.py
 """
 
+import collections
 import csv
 import os
 import sys
 import time
 import signal
 import subprocess
-import shlex
 from datetime import datetime
 from typing import Optional
 
 import docker
 import psutil
 
-
-# scheduler_logger.py is either in the same directory (VM deployment, both files
-# copied flat to /home/ubuntu/) or one level up (repo layout: scripts/controller.py
-# and scheduler_logger.py at root). Insert both so it works in either context.
+# scheduler_logger.py is either in the same directory (VM deployment) or one
+# level up (repo layout). Insert both.
 _here = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _here)
 sys.path.insert(0, os.path.join(_here, ".."))
 from scheduler_logger import SchedulerLogger, Job  # noqa: E402
 
-# Cluster topology
-TOTAL_CORES: list[int] = list(range(4))   # cores 0-3 on the 4-core VM
 
-# Memcached parameters
-# Fixed at memcached startup in /etc/memcached.conf (-t flag).
-# 3 threads lets memcached scale to 125 K+ QPS when given 3 cores.
+# Configuration
+
+TOTAL_CORES: list[int] = list(range(4))
 MEMCACHED_THREADS: int = 3
 
-# Control-loop parameters
-POLL_INTERVAL: float = 0.5    # seconds between controller iterations
-
-# CPU thresholds: fraction of per-core capacity, 0–100.
-# Memcached util is measured as total_cpu_pct / num_allocated_cores.
-CPU_HIGH: float = 75.0   # expand memcached if util/core exceeds this
-CPU_LOW:  float = 20.0   # shrink memcached if util/core falls below this
-
-# Hysteresis: require the condition to persist for N consecutive polls
-EXPAND_POLLS: int = 2    # react quickly to load spikes
-SHRINK_POLLS: int = 30   # require 15 s of low CPU before freeing a core
-
-# Hard limits on memcached core count
-MEM_CORES_MIN: int = 2   # always keep 2 cores: handles up to ~60K QPS safely
-MEM_CORES_MAX: int = 3   # always leave at least 1 core for batch jobs
-
-# Maximum concurrent batch containers: 1 avoids LLC thrashing between jobs
-MAX_CONCURRENT_JOBS: int = 2
-
-
-# Batch-job catalogue
-# Ordered longest-first to minimize total makespan.
-# max_threads: upper bound on the -n argument for this job.
-#   Memory-bound jobs (canneal, radix) don't benefit from many threads.
-
-BATCH_QUEUE: list[tuple[Job, str, str, int]] = [
-    # (job_enum, docker_image, parsec_run_cmd_template, max_threads)
-    (
-        Job.STREAMCLUSTER,
-        "anakli/cca:parsec_streamcluster",
-        "./run -a run -S parsec -p streamcluster -i native -n {n}",
-        4,
+POLICY = os.environ.get("CONTROLLER_POLICY", "responsive").lower()
+# Per-policy parameters. `up_dwell` and `down_dwell` are asymmetric, fast to
+# expand memcached when load arrives, slow to shrink to prevent flapping.
+# `panic` (if > 0) triggers an immediate jump to cap_tier when per-core CPU
+# exceeds it, bypassing the dwell timer.
+# `min_tier` (default 1) puts a floor on how far memcached can shrink: setting
+# it to 2 hard-guarantees memcached always has >= 2 cores and batch <= 2 cores,
+# eliminating the slow 1->2 ramp-up that hurts SLO at qps_interval=5.
+# `poll` is the controller-loop sleep; CPU read is non-blocking.
+POLICY_PARAMS: dict[str, dict] = {
+    # name           expand% shrink% up_dwell down_dwell  poll  init  lock   cap  panic% min_tier
+    "static":        dict(up=999.0, down=-1.0, up_dwell=1.0, down_dwell=1.0,  poll=0.5,  init_tier=2, lock=True,  cap=2, panic=0.0,  min_tier=2),
+    "responsive":    dict(up=75.0,  down=30.0, up_dwell=1.5, down_dwell=1.5,  poll=0.25, init_tier=1, lock=False, cap=3, panic=0.0,  min_tier=1),
+    "aggressive":    dict(up=60.0,  down=40.0, up_dwell=0.5, down_dwell=0.5,  poll=0.2,  init_tier=1, lock=False, cap=3, panic=0.0,  min_tier=1),
+    "throughput":    dict(up=85.0,  down=50.0, up_dwell=0.5, down_dwell=0.5,  poll=0.2,  init_tier=1, lock=False, cap=2, panic=0.0,  min_tier=1),
+    # smart family: aggressive panic + 0.1s polling, proven NOISY and unstable
+    # in 5-min sweeps at both qps_interval=15 (40-80% SLO) and qps_interval=5 (>80%).
+    "smart":         dict(up=70.0,  down=25.0, up_dwell=0.1, down_dwell=5.0,  poll=0.1,  init_tier=1, lock=False, cap=3, panic=92.0, min_tier=1),
+    "smart_fast":    dict(up=60.0,  down=20.0, up_dwell=0.1, down_dwell=3.0,  poll=0.1,  init_tier=1, lock=False, cap=3, panic=88.0, min_tier=1),
+    "smart_eager":   dict(up=50.0,  down=20.0, up_dwell=0.1, down_dwell=5.0,  poll=0.1,  init_tier=1, lock=False, cap=3, panic=85.0, min_tier=1),
+    "smart_safe":    dict(up=65.0,  down=15.0, up_dwell=0.1, down_dwell=8.0,  poll=0.1,  init_tier=1, lock=False, cap=3, panic=90.0, min_tier=1),
+    # 'bounded': user-specified resource guarantee.
+    #   memcached always in {2, 3} cores  (min_tier=2, cap=3)
+    #   batch     always in {1, 2} cores  (slot_A=[3] + slot_B in {[2], paused})
+    # Eliminates the slow 1->2 transition entirely: the only move the controller
+    # ever makes is 2<->3 for genuine 100K+ peaks. PASSED SLO @ qps_interval=15
+    # (0%) but FAILED @ qps_interval=5 (15%) because up_dwell=0.5s + poll=0.25s
+    # = ~0.8s entry latency, which is 16% of a 5s peak window.
+    "bounded":       dict(up=75.0,  down=25.0, up_dwell=0.5, down_dwell=3.0,  poll=0.25, init_tier=2, lock=False, cap=3, panic=0.0,  min_tier=2),
+    # 'bounded_react': same constraints as bounded, but with NO up_dwell.
+    # Insight: the load is step-constant between mcperf interval boundaries,
+    # so there is no noise to filter, the only "dwell" we need on expand is
+    # the natural poll period. PASSED @15s (0%), FAILED @5s (18%) due to
+    # poll=0.25s detection latency (5% of a 5s window -> queue buildup tails).
+    "bounded_react": dict(up=75.0,  down=25.0, up_dwell=0.0, down_dwell=1.0,  poll=0.25, init_tier=2, lock=False, cap=3, panic=0.0,  min_tier=2),
+    # 'bounded_fast': same thresholds as bounded_react, but poll=0.05s.
+    # Detection latency drops from 0.25s to 0.05s (only 1% of a 5s window).
+    # Requires the slot-check decoupling (slot_check=0.25s) so we don't pay
+    # docker-reload latency 20x per second.
+    "bounded_fast":  dict(up=75.0,  down=25.0, up_dwell=0.0, down_dwell=1.0,  poll=0.05, init_tier=2, lock=False, cap=3, panic=0.0,  min_tier=2, slot_check=0.25),
+    # 'bounded_preempt': fast poll + preemptive expansion.
+    # Expands at up=55% (before 2-core cap of 95K QPS) but FAILED 25%/20%
+    # because down=18% shrinks during moderate-QPS intervals (40-60K) where
+    # tier-3 per-core CPU is 13-22%, sending us back to tier 2 right before
+    # the next 100K peak. Need a much lower shrink threshold.
+    "bounded_preempt": dict(up=55.0, down=18.0, up_dwell=0.0, down_dwell=5.0,  poll=0.05, init_tier=2, lock=False, cap=3, panic=0.0,  min_tier=2, slot_check=0.25),
+    # 'bounded_conservative': preempt + the two suggestions:
+    #   (1) much lower shrink threshold (down=8%) so tier 3 is held across
+    #       moderate intervals; on tier 3 with QPS=38K per-core ~ 13% so we
+    #       stay; we only shrink at genuinely low QPS (< 25K), e.g. trace's
+    #       intervals at 7K / 8K / 13K / 17K / 20K which are clearly idle.
+    #   (2) nice=-20 (set globally at entry point) so the controller's poll
+    #       fires on time even when memcached + batch saturate all 4 cores.
+    # FAILED 0%/18.33%, down_dwell=3s lets shrink fire after a few seconds of
+    # low load, sending us back to tier 2 right before the next peak.
+    "bounded_conservative": dict(up=55.0, down=8.0, up_dwell=0.0, down_dwell=3.0,  poll=0.05, init_tier=2, lock=False, cap=3, panic=0.0,  min_tier=2, slot_check=0.25),
+    # 'bounded_tuned': zero-dwell, threshold-only hysteresis, sub-50ms poll.
+    # The hysteresis comes purely from the GAP between up and down thresholds:
+    #   up=55%  expand when per-core on tier 2 > 55%  (~ QPS > 52K)
+    #   down=3% shrink when per-core on tier 3 < 3%   (~ QPS < 9K, genuinely idle)
+    # Why these specific boundaries:
+    #   * up=55% is the LARGEST value that still preempts before the 95K-QPS
+    #     tier-2 saturation cliff (50K QPS preceding interval pre-charges to
+    #     tier 3, so 100K peaks are served from a pre-warmed 3-core memcached).
+    #   * down=3% is the LARGEST value that keeps tier 3 through moderate
+    #     valleys (44K -> 15% per-core on tier 3, 20K -> 7%, 13K -> 4.6% all
+    #     stay above 3%). Only true idle (< 9K QPS) shrinks → slot_B unpauses
+    #     during clearly-idle stretches, then re-pauses as load returns —
+    #     hysteresis without time-based dwell.
+    # Reaction time: poll=0.025s (40 Hz CPU sampling), slot_check=0.1s
+    # (docker.reload only 10 Hz so it doesn't bottleneck the tier loop).
+    # End-to-end transition latency: ~25 ms detect + ~50 ms taskset/pause
+    # ~ 75 ms ~ 1.5% of a 5 s peak window. Combined with nice=-20 from the
+    # entry point, this is the maximum reactivity achievable on this VM.
+    "bounded_tuned": dict(up=55.0, down=3.0, up_dwell=0.0, down_dwell=0.0,  poll=0.025, init_tier=2, lock=False, cap=3, panic=0.0,  min_tier=2, slot_check=0.075),
+    # 'bounded_filtered': bounded_tuned + shrink-side measurement smoothing.
+    # The 25 ms cpu_percent window is very noisy (psutil reports 0% during
+    # brief request lulls); without smoothing, single-poll 0% glitches make
+    # zero-dwell controllers flap. We average the last 40 readings (1 s) for
+    # the SHRINK decision only, expand still uses raw cpu_per_core for
+    # instant response.  This isn't a time-based dwell: shrink fires
+    # instantaneously the moment the moving average crosses 3%.
+    "bounded_filtered": dict(
+        up=55.0, down=3.0,
+        up_dwell=0.0, down_dwell=0.0,
+        poll=0.025, slot_check=0.075,
+        init_tier=2, lock=False, cap=3,
+        panic=0.0, min_tier=2,
+        shrink_window=40,
     ),
-    (
-        Job.FREQMINE,
-        "anakli/cca:parsec_freqmine",
-        "./run -a run -S parsec -p freqmine -i native -n {n}",
-        4,
+    # 'bounded_throttled': bounded_filtered + memory-bandwidth-aware throttling.
+    # Diagnosis from bounded_filtered's 21.67% failure: even at tier 3 (where
+    # memcached has 3 dedicated cores), violations occurred at 74-87K QPS and
+    # all 90K+ peaks because slot_A is running canneal on core 3, the most
+    # memory-bandwidth-heavy PARSEC benchmark, and its shared-LLC + shared-
+    # memory-bus pressure cuts memcached's effective capacity from ~125K
+    # (Q1 isolation) down to ~95K. The fix is structural: while at tier 3,
+    # throttle slot_A's container to 30% CPU via docker's cpu_quota knob.
+    # slot_A keeps its core and keeps progressing, but generates 70% fewer
+    # memory references per second -> memcached gets back the bandwidth it
+    # needs to actually serve 100K+ QPS under SLO. When the controller drops
+    # back to tier 2 (load is genuinely low), slot_A's quota is restored.
+    # Combined with the slot_A queue reorder (blackscholes / barnes first,
+    # canneal LAST), the early high-QPS peaks coincide with compute-bound
+    # batch work where this throttle is least costly.
+    "bounded_throttled": dict(
+        up=55.0, down=3.0,
+        up_dwell=0.0, down_dwell=0.0,
+        poll=0.025, slot_check=0.075,
+        init_tier=2, lock=False, cap=3,
+        panic=0.0, min_tier=2,
+        shrink_window=40,
+        throttle_slot_a_pct=30,
     ),
-    (
-        Job.CANNEAL,
-        "anakli/cca:parsec_canneal",
-        "./run -a run -S parsec -p canneal -i native -n {n}",
-        1,   # memory-latency bound; extra threads don't help
+    # 'bounded_total': PHASE 1 of integrating the friend's scheduler_v2 design.
+    # The single most important change: drives tier transitions off TOTAL
+    # memcached CPU% (tier-invariant) instead of per-core CPU. Same QPS ->
+    # same total -> fixed threshold doesn't reset on tier change → no flapping.
+    # Uses the friend's exact per-tier transition table (TIER_THRESHOLDS_TOTAL)
+    # with bounded constraints applied via min_tier=2 (memcached stays ≥ 2
+    # cores) so we keep the "max 2 batch cores" guarantee.
+    # Starts at tier 3 (init_tier=3, matches friend), memcached is already
+    # warmed at 3 cores when the first peak arrives, eliminating the very
+    # first transition window which was a violation source. Asymmetric counter
+    # hysteresis (5 iters * 0.1 s poll = 0.5 s opposite-direction block,
+    # same-direction always allowed) replaces time dwells. The up/down/etc
+    # legacy fields are placeholders, unused when use_total_cpu=True.
+    # RESULT @ qps_interval=5: 11.67 % (best so far), but 63 transitions, all
+    # in the 160–170 % flap zone. hysteresis of 0.5 s is too short.
+    "bounded_total": dict(
+        up=0.0, down=0.0, up_dwell=0.0, down_dwell=0.0,
+        poll=0.1, slot_check=0.1,
+        init_tier=3, lock=False, cap=3,
+        panic=0.0, min_tier=2,
+        shrink_window=1,
+        throttle_slot_a_pct=0,
+        use_total_cpu=True,
+        hysteresis_iters=5,
     ),
-    (
-        Job.VIPS,
-        "anakli/cca:parsec_vips",
-        "./run -a run -S parsec -p vips -i native -n {n}",
-        4,
+    # 'bounded_total_v3': PHASE 3 tighten the tier 2/3 threshold placement
+    # while keeping Phase 1's working settings (min_tier=2, hysteresis_iters=5,
+    # init_tier=3). Phase 2's min_tier=1 was catastrophic (86.67% SLO) because
+    # the tier 1<->2 boundary at 80/95% util corresponds exactly to the trace's
+    # most common load range (45-55K QPS), producing constant flapping.
+    #
+    # The remaining failure mode in Phase 1 (11.67% SLO) was peak transitions:
+    # any time a low/moderate interval precedes a peak interval, we end up at
+    # tier 2 going into the peak and have to transition mid-peak -> queue
+    # buildup -> p95 violation.
+    #
+    # Fix: WIDEN the expand->shrink gap so once we expand to tier 3 at moderate
+    # load (~50K+ QPS), we stay there through the surrounding moderate/peak
+    # intervals. Only shrink when load is genuinely idle (< ~12K QPS).
+    #
+    #   Default friend thresholds:  expand >160 / shrink <170  (gap = 10)
+    #   Phase 3 thresholds:         expand >80  / shrink <30   (gap = 50)
+    #
+    # Effect on the trace:
+    #   - 53K QPS (tier 2, util ~112%) > 80 -> expand at the FIRST moderate
+    #     interval before peaks arrive.
+    #   - 38K QPS (tier 3, util ~91%) > 30 -> stay tier 3 through low-moderate
+    #     intervals; controller doesn't shrink at every dip.
+    #   - 8K QPS (tier 3, util ~19%) < 30 -> shrink ONLY at genuine idle.
+    #
+    # Predicted transitions: ~14 (one per genuine idle interval) vs Phase 1's
+    # 63. Predicted SLO violations: 0-1 (peaks served from pre-warmed tier 3,
+    # transitions happen at safe moderate-load intervals where tier 2's 95K
+    # capacity isn't approached).
+    "bounded_total_v3": dict(
+        up=0.0, down=0.0, up_dwell=0.0, down_dwell=0.0,
+        poll=0.1, slot_check=0.1,
+        init_tier=3, lock=False, cap=3,
+        panic=0.0, min_tier=2,            # ← reverted to Phase 1 (min_tier=1 was catastrophic)
+        shrink_window=1,
+        throttle_slot_a_pct=0,
+        use_total_cpu=True,
+        hysteresis_iters=5,               # <- reverted to Phase 1 (15 didn't help)
+        tier_thresholds={                 # <- Phase 3: tightened expand/shrink boundaries
+            2: [(3, '>', 80.0)],          #   expand to tier 3 at ~38K QPS (was 160% = 76K)
+            3: [(2, '<', 30.0)],          #   shrink to tier 2 only at ~12K QPS (was 170% = 70K)
+        },
     ),
-    (
-        Job.BLACKSCHOLES,
-        "anakli/cca:parsec_blackscholes",
-        "./run -a run -S parsec -p blackscholes -i native -n {n}",
-        4,
-    ),
-    (
-        Job.BARNES,
-        "anakli/cca:splash2x_barnes",
-        "./run -a run -S splash2x -p barnes -i native -n {n}",
-        4,
-    ),
-    (
-        Job.RADIX,
-        "anakli/cca:splash2x_radix",
-        "./run -a run -S splash2x -p radix -i native -n {n}",
-        1,   # memory-bandwidth bound
-    ),
-]
+}
+if POLICY not in POLICY_PARAMS:
+    sys.stderr.write(f"[CTRL] Unknown policy '{POLICY}', falling back to 'responsive'\n")
+    POLICY = "responsive"
+_P = POLICY_PARAMS[POLICY]
+
+POLL_INTERVAL:  float = _P["poll"]
+CPU_HIGH:       float = _P["up"]
+CPU_LOW:        float = _P["down"]
+UP_DWELL_S:     float = _P["up_dwell"]
+DOWN_DWELL_S:   float = _P["down_dwell"]
+INITIAL_TIER:   int   = _P["init_tier"]
+LOCK_TIER:      bool  = _P["lock"]
+CAP_TIER:       int   = _P["cap"]      # max tier reachable, cap=2 means slot_B never paused
+PANIC_PCT:      float = _P["panic"]    # if >0, jump straight to cap_tier when per-core > this
+MIN_TIER:       int   = _P["min_tier"] # floor on memcached's tier, min_tier=2 means mem >= 2 cores
+# Slot-check interval defaults to POLL_INTERVAL (every poll, legacy behaviour).
+# Setting it higher than POLL_INTERVAL lets the controller tier-tick at high
+# frequency without paying docker.container.reload() latency on every poll.
+SLOT_CHECK_S:   float = _P.get("slot_check", POLL_INTERVAL)
+# Moving-average window for the SHRINK decision only.  shrink_window=1 means
+# "use the raw single-poll CPU reading" (legacy behavior).  shrink_window=N
+# means "shrink only when the average of the last N CPU readings is below
+# CPU_LOW".  This filters out single-poll measurement noise (psutil reports
+# 0% over a 25 ms window during brief request lulls) WITHOUT introducing a
+# time-based dwell, so the decision is still instantaneous, it's the MEASUREMENT
+# that is smoothed.  Expand still uses the raw reading for instant response
+# to a real load climb.
+SHRINK_WINDOW:  int   = _P.get("shrink_window", 1)
+# Throttle slot_A's docker container to N% of one core while memcached is at
+# tier 3 and memcached saturates its allocated cores.  This reduces slot_A's
+# memory-bandwidth pressure on the shared LLC + memory bus so memcached can
+# actually use the 3 cores it's been given.
+# 0 disables throttling and it's default behavior.
+# Implemented via docker's cpu_period / cpu_quota knobs, slot_A is NOT
+# paused, it just runs slower, restored to unlimited when we drop to tier 2.
+THROTTLE_SLOT_A_PCT: int = _P.get("throttle_slot_a_pct", 0)
+# Docker CFS period for the throttle (microseconds). 100 000 = 100 ms.
+THROTTLE_PERIOD_US: int  = 100_000
+
+# === TOTAL-CPU mode, Phase 1: integration of new design scheduler_v2 logic) ===
+# When True, the controller drives tier transitions off the TOTAL memcached
+# CPU%, by summing across all its threads/cores, rather than the per-core average.
+# Total CPU is tier-INVARIANT: at 100 K QPS memcached uses ~240% regardless of
+# whether it has 2 or 3 cores, so a fixed threshold doesn't "reset" after a
+# tier change -> no flapping, even with zero dwell and fast polling.
+USE_TOTAL_CPU: bool = _P.get("use_total_cpu", False)
+# Asymmetric counter-based hysteresis (mirrors friend's increased_recently /
+# decreased_recently). After an EXPAND, decreases are blocked for this many
+# poll iterations; after a SHRINK, expands are blocked for this many.
+# Same-direction transitions are always allowed (so the controller can climb
+# tier 1→2→3 in two ticks if needed).
+HYSTERESIS_ITERS: int = _P.get("hysteresis_iters", 0)
+
+# Per-tier transition table for the TOTAL-CPU mode.
+# Format:   current_tier -> [(target_tier, '>' or '<', threshold_total_cpu_%) , ...]
+# Order matters: earlier entries are checked first, so tier 3 can jump
+# directly to tier 1 if util < 125%, before the tier 3 -> 2 rule fires.
+# Values directly mirror the new design of scheduler_v2.py state machine.
+DEFAULT_TIER_THRESHOLDS_TOTAL: dict = {
+    1: [(2, '>', 80.0)],
+    2: [(3, '>', 160.0), (1, '<', 95.0)],
+    3: [(1, '<', 125.0), (2, '<', 170.0)],
+}
+# Per-policy override: a policy may supply its own threshold table via the
+# 'tier_thresholds' key (same shape).  Used to tune the expand/shrink boundary
+# placement without touching the controller logic.
+TIER_THRESHOLDS_TOTAL: dict = _P.get("tier_thresholds", DEFAULT_TIER_THRESHOLDS_TOTAL)
+
+# Tier table: memcached cores, slot_A cores, slot_B cores (None -> pause B)
+TIER_DEFS: dict[int, dict] = {
+    1: {"mem": [0],       "slot_A": [3], "slot_B": [1, 2]},
+    2: {"mem": [0, 1],    "slot_A": [3], "slot_B": [2]},
+    3: {"mem": [0, 1, 2], "slot_A": [3], "slot_B": None},
+}
+
+# Job catalogue: enum -> (docker_image, command_template, max_threads_arg)
+JOB_SPEC: dict = {
+    Job.STREAMCLUSTER: ("anakli/cca:parsec_streamcluster",
+                        "./run -a run -S parsec -p streamcluster -i native -n {n}", 4),
+    Job.FREQMINE:      ("anakli/cca:parsec_freqmine",
+                        "./run -a run -S parsec -p freqmine -i native -n {n}", 4),
+    Job.CANNEAL:       ("anakli/cca:parsec_canneal",
+                        "./run -a run -S parsec -p canneal -i native -n {n}", 1),
+    Job.VIPS:          ("anakli/cca:parsec_vips",
+                        "./run -a run -S parsec -p vips -i native -n {n}", 4),
+    Job.BLACKSCHOLES:  ("anakli/cca:parsec_blackscholes",
+                        "./run -a run -S parsec -p blackscholes -i native -n {n}", 4),
+    Job.BARNES:        ("anakli/cca:splash2x_barnes",
+                        "./run -a run -S splash2x -p barnes -i native -n {n}", 4),
+    Job.RADIX:         ("anakli/cca:splash2x_radix",
+                        "./run -a run -S splash2x -p radix -i native -n {n}", 1),
+}
+
+# Per-slot queues.  slot_A always runs on core 3, sharing the memory bus with
+# memcached on cores [0,1,2].  PARSEC benchmarks vary wildly in memory-bandwidth
+# pressure: canneal and radix are heavy memory contenders that hurt memcached's
+# effective tier-3 capacity, while blackscholes / barnes / vips are more
+# compute-bound.  Order slot_A LIGHTEST-FIRST so the early high-QPS peaks in
+# the trace coincide with compute-bound batch work, deferring the memory-heavy
+# jobs to the tail of the run where their interference is less critical,
+# or can be tempered by THROTTLE_SLOT_A_PCT.
+SLOT_A_QUEUE: list = [Job.BLACKSCHOLES, Job.BARNES, Job.RADIX, Job.CANNEAL]
+SLOT_B_QUEUE: list = [Job.FREQMINE, Job.STREAMCLUSTER, Job.VIPS]
 
 
 # Helpers
 
 def cores_to_cpuset(cores: list[int]) -> str:
-    """Convert a sorted core list to a Docker/taskset cpuset string.
-
-    [0]       → '0'
-    [0, 1, 2] → '0-2'
-    [0, 2]    → '0,2'
-    """
+    """[0]->'0', [0,1,2]->'0-2', [0,2]->'0,2'."""
     if not cores:
         return ""
     cores = sorted(cores)
@@ -146,47 +367,89 @@ def find_memcached_pid() -> Optional[int]:
     return None
 
 
-def read_memcached_cpu(pid: int, num_cores: int) -> float:
-    """Return memcached CPU utilization as a percentage of one core (0–100).
+def read_memcached_cpu_proc(proc: "psutil.Process", num_cores: int) -> float:
+    """Non-blocking memcached utilisation, % of one core averaged across its cpuset.
 
-    Uses a 0.2-second blocking sample so the first call is accurate.
+    Uses psutil.Process.cpu_percent() with no interval: it returns CPU% measured
+    since the previous call on this Process instance, so the controller's main
+    sleep determines the measurement window. This lets us poll at < 0.1 s
+    without blocking inside the read itself. Recall that the legacy 0.15 s blocking read
+    capped the loop frequency at ~0.4 s end-to-end.
     """
     try:
-        proc = psutil.Process(pid)
-        total_pct = proc.cpu_percent(interval=0.2)   # 100 % == 1 full core
+        total_pct = proc.cpu_percent()
         return total_pct / max(num_cores, 1)
     except (psutil.NoSuchProcess, psutil.AccessDenied):
         return 0.0
 
 
+def read_memcached_total_cpu(proc: "psutil.Process") -> float:
+    """Non-blocking TOTAL memcached utilisation across all its threads/cores.
+
+    Differs from read_memcached_cpu_proc: this returns the RAW total, which can exceed
+    100% on multi-core, invariant under tier changes -> the same QPS load
+    produces the same total CPU% regardless of how many cores memcached is
+    pinned to. That property is what makes the new design controller stable.
+    """
+    try:
+        return proc.cpu_percent()
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
+        return 0.0
+
+
 def taskset_pid(pid: int, cores: list[int]) -> None:
-    """Pin all threads of pid to cores using taskset."""
-    cpuset = cores_to_cpuset(cores)
     subprocess.run(
-        ["sudo", "taskset", "-a", "-cp", cpuset, str(pid)],
-        check=True,
-        capture_output=True,
+        ["sudo", "taskset", "-a", "-cp", cores_to_cpuset(cores), str(pid)],
+        check=True, capture_output=True,
     )
 
 
-# Controller class
-class Controller:
-    """Dynamic scheduler for memcached + PARSEC batch jobs on a 4-core VM."""
+# ───────────────────────── Slot ─────────────────────────
 
+class Slot:
+    """One batch-job slot, either fixed-core 'A' or dynamic 'B'."""
+
+    __slots__ = ("name", "cores", "container", "job_enum", "paused")
+
+    def __init__(self, name: str, cores: list[int]) -> None:
+        self.name = name
+        self.cores: list[int] = list(cores)
+        self.container = None
+        self.job_enum: Optional[Job] = None
+        self.paused: bool = False
+
+
+# Controller
+class Controller:
     def __init__(self) -> None:
         self.logger = SchedulerLogger()
         self.docker = docker.from_env()
 
         self.memcached_pid: Optional[int] = None
-        self.memcached_cores: list[int] = [0]   # updated dynamically
+        self.memcached_proc: Optional[psutil.Process] = None
+        self._mem_tier: int = INITIAL_TIER
 
-        # Running batch jobs: name -> {container, cores, job_enum, threads}
-        self.running: dict[str, dict] = {}
-        self.queue: list[tuple[Job, str, str, int]] = list(BATCH_QUEUE)
+        self.slot_A = Slot("A", TIER_DEFS[INITIAL_TIER]["slot_A"])
+        slot_B_init = TIER_DEFS[INITIAL_TIER]["slot_B"] or []
+        self.slot_B = Slot("B", slot_B_init)
+        self.slot_A_queue: list = list(SLOT_A_QUEUE)
+        self.slot_B_queue: list = list(SLOT_B_QUEUE)
 
-        # Hysteresis counters
-        self._high_cnt: int = 0
-        self._low_cnt:  int = 0
+        self._last_tier_change: float = time.monotonic()
+        # Rolling buffer for the shrink-direction measurement smoothing.
+        # Initialised with 100% values so the moving average can't dip below
+        # the shrink threshold until at least SHRINK_WINDOW real readings have
+        # arrived -> prevents a spurious shrink in the first half-second.
+        self._cpu_history: collections.deque = collections.deque(
+            [100.0] * SHRINK_WINDOW,
+            maxlen=SHRINK_WINDOW,
+        )
+        # Asymmetric counter-based hysteresis for TOTAL-CPU mode (new design).
+        # After an INCREASE we set _inc_recently = HYSTERESIS_ITERS, then it
+        # decrements each poll, while > 0 it blocks DECREASE transitions.
+        # Symmetric story for _dec_recently blocking INCREASE.
+        self._inc_recently: int = 0
+        self._dec_recently: int = 0
 
         self._stop = False
         signal.signal(signal.SIGINT,  self._on_signal)
@@ -194,170 +457,277 @@ class Controller:
 
         # Per-core CPU utilization log
         _ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self._cpu_log_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            f"cpu_log_{_ts}.csv",
-        )
+        self._cpu_log_path = os.path.join(_here, f"cpu_log_{_ts}.csv")
         self._cpu_log_fh = open(self._cpu_log_path, "w", newline="")
         self._cpu_writer = csv.writer(self._cpu_log_fh)
         self._cpu_writer.writerow(["timestamp", "core0", "core1", "core2", "core3"])
         self._cpu_log_fh.flush()
-        # Warm-up call so the first real sample is accurate
-        psutil.cpu_percent(percpu=True)
+        psutil.cpu_percent(percpu=True)  # warm up
 
+        if USE_TOTAL_CPU:
+            print(
+                f"[CTRL] Policy: {POLICY}  (TOTAL-CPU mode | "
+                f"hysteresis={HYSTERESIS_ITERS}iters | "
+                f"poll={POLL_INTERVAL}s slot_check={SLOT_CHECK_S}s | "
+                f"init_tier={INITIAL_TIER} min_tier={MIN_TIER} "
+                f"cap_tier={CAP_TIER} | thresholds=friend_v2)",
+                flush=True,
+            )
+        else:
+            print(
+                f"[CTRL] Policy: {POLICY}  "
+                f"(expand>{CPU_HIGH}% up_dwell={UP_DWELL_S}s | "
+                f"shrink<{CPU_LOW}% down_dwell={DOWN_DWELL_S}s "
+                f"shrink_window={SHRINK_WINDOW} polls | "
+                f"panic>{PANIC_PCT}% | "
+                f"poll={POLL_INTERVAL}s slot_check={SLOT_CHECK_S}s | "
+                f"init_tier={INITIAL_TIER} min_tier={MIN_TIER} "
+                f"cap_tier={CAP_TIER} lock={LOCK_TIER})",
+                flush=True,
+            )
 
     def _on_signal(self, _sig, _frame) -> None:
         self._stop = True
 
-
-    # Core bookkeeping
-    def _batch_cores(self) -> set[int]:
-        """Get cores used by batch jobs which are within the running dict."""
-        used: set[int] = set()
-        for info in self.running.values():
-            used.update(info["cores"])
-        return used
-
-
-    def _free_cores(self) -> list[int]:
-        """Get free cores not used by neither memcache nor batch jobs."""
-        used = set(self.memcached_cores) | self._batch_cores()
-        return [c for c in TOTAL_CORES if c not in used]
-
-
-    def _cores_available_for_new_job(self) -> list[int]:
-        return self._free_cores()
-
-
-    # Memcached setup
+    # memcached setup
     def _init_memcached(self) -> None:
         self.memcached_pid = find_memcached_pid()
         if not self.memcached_pid:
-            raise RuntimeError(
-                "memcached process not found, ensure it is running on this VM."
-            )
-        print(f"[CTRL] memcached PID={self.memcached_pid}")
+            raise RuntimeError("memcached process not running on this VM")
+        print(f"[CTRL] memcached PID={self.memcached_pid}", flush=True)
 
-        # Start conservatively: give memcached one core so batch jobs have room.
-        self.memcached_cores = [0]
-        taskset_pid(self.memcached_pid, self.memcached_cores)
-        self.logger.job_start(Job.MEMCACHED, self.memcached_cores, MEMCACHED_THREADS)
-        print(f"[CTRL] memcached pinned to cores {self.memcached_cores}")
+        # Long-lived Process handle so cpu_percent() can be called non-blocking
+        # it returns CPU% since the previous call on the same instance
+        self.memcached_proc = psutil.Process(self.memcached_pid)
+        self.memcached_proc.cpu_percent()  # warm-up, first call returns 0.0
 
-
-    # Memcached core adjustment
-    def _adjust_memcached(self, cpu_pct: float) -> None:
-        """Grow or shrink memcached's core set based on CPU utilization."""
-        n = len(self.memcached_cores)
-
-        if cpu_pct > CPU_HIGH and n < MEM_CORES_MAX:
-            self._high_cnt += 1
-            self._low_cnt = 0
-            if self._high_cnt >= EXPAND_POLLS:
-                self._high_cnt = 0
-                self._try_expand_memcached()
-        elif cpu_pct < CPU_LOW and n > MEM_CORES_MIN:
-            self._low_cnt += 1
-            self._high_cnt = 0
-            if self._low_cnt >= SHRINK_POLLS:
-                self._low_cnt = 0
-                self._shrink_memcached()
-        else:
-            # Move hysteresis counters toward zero (decay)
-            self._high_cnt = max(0, self._high_cnt - 1)
-            self._low_cnt  = max(0, self._low_cnt  - 1)
-
-
-    def _try_expand_memcached(self) -> None:
-        """Give memcached one additional core, stealing from a batch job if needed."""
-        # Prefer a free core first
-        free = self._free_cores()
-        if free:
-            new_core = min(free)
-            self.memcached_cores = sorted(self.memcached_cores + [new_core])
-            taskset_pid(self.memcached_pid, self.memcached_cores)
-            self.logger.update_cores(Job.MEMCACHED, self.memcached_cores)
-            print(f"[CTRL] memcached expanded -> {self.memcached_cores} (free core)")
-            return
-
-        # Otherwise steal from the batch job with the most cores
-        best_name, best_info = None, None
-        for name, info in self.running.items():
-            if len(info["cores"]) > 1:
-                if best_info is None or len(info["cores"]) > len(best_info["cores"]):
-                    best_name, best_info = name, info
-
-        if best_name is None:
-            print("[CTRL] Cannot expand memcached: all batch jobs have only 1 core")
-            return
-
-        stolen = max(best_info["cores"])   # take the highest core from the job
-        new_job_cores = [c for c in best_info["cores"] if c != stolen]
-        try:
-            best_info["container"].update(cpuset_cpus=cores_to_cpuset(new_job_cores))
-        except docker.errors.APIError as exc:
-            print(f"[CTRL] docker update failed for {best_name}: {exc}")
-            return
-
-        best_info["cores"] = new_job_cores
-        self.logger.update_cores(best_info["job_enum"], new_job_cores)
-
-        self.memcached_cores = sorted(self.memcached_cores + [stolen])
-        taskset_pid(self.memcached_pid, self.memcached_cores)
-        self.logger.update_cores(Job.MEMCACHED, self.memcached_cores)
+        initial_mem_cores = TIER_DEFS[INITIAL_TIER]["mem"]
+        taskset_pid(self.memcached_pid, initial_mem_cores)
+        self.logger.job_start(Job.MEMCACHED, initial_mem_cores, MEMCACHED_THREADS)
         print(
-            f"[CTRL] Stole core {stolen} from {best_name}; "
-            f"memcached++ -> {self.memcached_cores}, {best_name}-- -> {new_job_cores}"
+            f"[CTRL] memcached pinned to {initial_mem_cores} (tier {INITIAL_TIER})",
+            flush=True,
         )
 
-    def _shrink_memcached(self) -> None:
-        """Release memcached's highest numbered core back to batch jobs."""
-        released = max(self.memcached_cores)
-        self.memcached_cores = [c for c in self.memcached_cores if c != released]
-        taskset_pid(self.memcached_pid, self.memcached_cores)
-        self.logger.update_cores(Job.MEMCACHED, self.memcached_cores)
-        print(f"[CTRL] memcached shrunk -> {self.memcached_cores} (core {released} freed)")
-        # Offer the released core to a running job
-        self._offer_core_to_batch(released)
+    # Tier transition TOTAL-CPU mode, new design
+    def _tick_tier_total(self, total_cpu: float) -> None:
+        """new style state machine driven by tier-invariant total CPU%.
 
+        - Looks up applicable transitions from TIER_THRESHOLDS_TOTAL.
+        - Respects MIN_TIER / CAP_TIER bounds (skipping disallowed targets).
+        - Asymmetric counter hysteresis: an INCREASE blocks DECREASES for
+          HYSTERESIS_ITERS polls, and vice versa, same-direction always
+          allowed (so tier 1 -> 2 -> 3 can chain across consecutive ticks).
+        - Earlier entries in the per-tier list are checked first, letting
+          tier 3 jump straight to tier 1, thus skipping tier 2, when load
+          really collapses.
+        """
+        # Decrement counters one step per poll
+        if self._inc_recently > 0:
+            self._inc_recently -= 1
+        if self._dec_recently > 0:
+            self._dec_recently -= 1
 
-    def _offer_core_to_batch(self, core: int) -> None:
-        """Give core to a running batch job that doesn't already have it."""
-        for name, info in self.running.items():
-            if core not in info["cores"]:
-                new_cores = sorted(info["cores"] + [core])
+        if LOCK_TIER:
+            return
+
+        for target_tier, op, thr in TIER_THRESHOLDS_TOTAL.get(self._mem_tier, []):
+            # Bound check
+            if target_tier < MIN_TIER or target_tier > CAP_TIER:
+                continue
+            # Condition check
+            cond_met = (op == '>' and total_cpu > thr) or \
+                       (op == '<' and total_cpu < thr)
+            if not cond_met:
+                continue
+            # Hysteresis: block the OPPOSITE direction
+            is_increase = target_tier > self._mem_tier
+            if is_increase and self._dec_recently > 0:
+                continue
+            if (not is_increase) and self._inc_recently > 0:
+                continue
+            # Apply
+            self._apply_tier(target_tier, reason=f"total={total_cpu:.1f}% (rule {op}{thr})")
+            self._last_tier_change = time.monotonic()
+            if is_increase:
+                self._inc_recently = HYSTERESIS_ITERS
+            else:
+                self._dec_recently = HYSTERESIS_ITERS
+            return  # one transition per tick
+
+    # Tier transition for legacy per-core mode
+    def _tick_tier(self, cpu_per_core: float) -> None:
+        if LOCK_TIER:
+            return
+
+        # Update the rolling buffer used for the SHRINK decision only.
+        self._cpu_history.append(cpu_per_core)
+        if SHRINK_WINDOW > 1:
+            smoothed_cpu = sum(self._cpu_history) / len(self._cpu_history)
+        else:
+            smoothed_cpu = cpu_per_core   # no smoothing — raw reading
+
+        now = time.monotonic()
+        since_change = now - self._last_tier_change
+
+        # PANIC: if per-core CPU exceeds the panic threshold and we are not yet
+        # at cap_tier, jump directly to cap_tier, by skipping intermediate steps and
+        # ignore up_dwell. This catches sudden 100K+ QPS spikes that would
+        # otherwise require multiple up_dwell cycles to reach tier 3.
+        if PANIC_PCT > 0 and cpu_per_core > PANIC_PCT and self._mem_tier < CAP_TIER:
+            self._apply_tier(CAP_TIER, reason=f"PANIC cpu/core={cpu_per_core:.1f}%")
+            self._last_tier_change = now
+            return
+
+        # Expand uses the RAW reading: react instantly to a real load climb.
+        # Shrink uses the SMOOTHED reading: filter out single-poll 0% glitches
+        # so we don't flap mid-interval and end up on tier 2 when the next peak
+        # arrives.  Neither uses a time-based dwell.
+        want_expand = (cpu_per_core > CPU_HIGH) and (self._mem_tier < CAP_TIER)
+        want_shrink = (smoothed_cpu  < CPU_LOW)  and (self._mem_tier > MIN_TIER)
+
+        if want_expand and since_change >= UP_DWELL_S:
+            self._apply_tier(self._mem_tier + 1,
+                             reason=f"cpu/core={cpu_per_core:.1f}% (raw)")
+            self._last_tier_change = now
+        elif want_shrink and since_change >= DOWN_DWELL_S:
+            self._apply_tier(self._mem_tier - 1,
+                             reason=f"smoothed={smoothed_cpu:.1f}% raw={cpu_per_core:.1f}%")
+            self._last_tier_change = now
+
+    def _apply_tier(self, tier: int, reason: str = "") -> None:
+        old = self._mem_tier
+        self._mem_tier = tier
+        td = TIER_DEFS[tier]
+
+        # 1. memcached cpuset
+        try:
+            taskset_pid(self.memcached_pid, td["mem"])
+            self.logger.update_cores(Job.MEMCACHED, td["mem"])
+        except subprocess.CalledProcessError as e:
+            print(f"[CTRL] taskset memcached failed: {e}", flush=True)
+
+        # 1b. Throttle / un-throttle slot_A on tier 2<->3 boundary.  Memcached's
+        # effective tier-3 capacity is bounded by shared memory bandwidth, not
+        # CPU, throttling slot_A's CPU forces fewer memory references per
+        # second from canneal / radix / etc. and lets memcached reclaim the
+        # bandwidth it needs to actually serve 100K+ QPS within SLO.
+        if THROTTLE_SLOT_A_PCT > 0 and self.slot_A.container is not None:
+            if tier == 3 and old < 3:
+                quota = int(THROTTLE_PERIOD_US * THROTTLE_SLOT_A_PCT / 100)
                 try:
-                    info["container"].update(cpuset_cpus=cores_to_cpuset(new_cores))
-                except docker.errors.APIError as exc:
-                    print(f"[CTRL] docker update for {name} failed: {exc}")
-                    return
+                    self.slot_A.container.update(
+                        cpu_period=THROTTLE_PERIOD_US,
+                        cpu_quota=quota,
+                    )
+                    self.logger.custom_event(
+                        self.slot_A.job_enum,
+                        f"throttled_cpu_quota={THROTTLE_SLOT_A_PCT}pct",
+                    )
+                    print(
+                        f"[CTRL] slot_A throttled to {THROTTLE_SLOT_A_PCT}% CPU (tier 3)",
+                        flush=True,
+                    )
+                except docker.errors.APIError as e:
+                    print(f"[CTRL] slot_A throttle failed: {e}", flush=True)
+            elif tier < 3 and old == 3:
+                try:
+                    # cpu_quota=-1 means unlimited
+                    self.slot_A.container.update(
+                        cpu_period=THROTTLE_PERIOD_US,
+                        cpu_quota=-1,
+                    )
+                    self.logger.custom_event(self.slot_A.job_enum, "unthrottled")
+                    print(f"[CTRL] slot_A throttle removed (tier {tier})", flush=True)
+                except docker.errors.APIError as e:
+                    print(f"[CTRL] slot_A unthrottle failed: {e}", flush=True)
 
-                info["cores"] = new_cores
-                self.logger.update_cores(info["job_enum"], new_cores)
-                print(f"[CTRL] Gave core {core} to {name} -> {new_cores}")
-                return
-        # No running job: leave the core free for the next job to pick up
+        # 2. slot_B cpuset / pause state
+        target = td["slot_B"]
+        sb = self.slot_B
+        if target is None:
+            # Pause slot_B
+            if sb.container is not None and not sb.paused:
+                try:
+                    sb.container.pause()
+                    sb.paused = True
+                    self.logger.custom_event(sb.job_enum, "paused")
+                except docker.errors.APIError as e:
+                    print(f"[CTRL] pause slot_B failed: {e}", flush=True)
+            sb.cores = []
+        else:
+            if sb.container is not None:
+                if sb.paused:
+                    try:
+                        sb.container.unpause()
+                        sb.paused = False
+                        self.logger.custom_event(sb.job_enum, "unpaused")
+                    except docker.errors.APIError as e:
+                        print(f"[CTRL] unpause slot_B failed: {e}", flush=True)
+                if sb.cores != target:
+                    try:
+                        sb.container.update(cpuset_cpus=cores_to_cpuset(target))
+                        self.logger.update_cores(sb.job_enum, target)
+                    except docker.errors.APIError as e:
+                        print(f"[CTRL] slot_B cpuset update failed: {e}", flush=True)
+            sb.cores = list(target)
+
+        suffix = f" ({reason})" if reason else ""
+        print(
+            f"[CTRL] tier {old} → {tier}  mem={td['mem']}  "
+            f"slot_B={'PAUSED' if target is None else target}{suffix}",
+            flush=True,
+        )
 
 
-    #  Batch-job lifecycle
-    def _start_next_job(self) -> None:
-        """Launch the next queued job if resources permit."""
-        if not self.queue:
+    # Slot lifecycle
+    def _start_slot(
+        self,
+        slot: Slot,
+        own_queue: list,
+        steal_from: Optional[list] = None,
+    ) -> None:
+        """Start the next available job in this slot, work-stealing fallback."""
+        if slot.container is not None:
+            return
+        # Don't start slot_B during tier 3, as it would immediately be paused
+        if slot.name == "B" and self._mem_tier == 3:
+            return
+        if not slot.cores:  # nothing to pin to
             return
 
-        if len(self.running) >= MAX_CONCURRENT_JOBS:
+        # Pick a job from the slot's own queue, falling back to the other slot's
+        job_enum = None
+        if own_queue:
+            job_enum = own_queue.pop(0)
+        elif steal_from:
+            job_enum = steal_from.pop(0)
+        if job_enum is None:
             return
 
-        cores = self._cores_available_for_new_job()
-        if not cores:
-            return
-
-        job_enum, image, cmd_template, max_thr = self.queue[0]
-        threads = min(max_thr, len(cores))
+        image, cmd_template, max_threads = JOB_SPEC[job_enum]
+        max_slot_cores = 2 if slot.name == "B" else 1
+        threads = min(max_threads, max_slot_cores)
         cmd = cmd_template.format(n=threads)
-        cpuset = cores_to_cpuset(cores)
+        cpuset = cores_to_cpuset(slot.cores)
 
-        print(f"[CTRL] Starting {job_enum.value} on cores {cores}, {threads} threads ...")
+        # Pre-flight: remove any leftover container with the same name from a
+        # previous run, otherwise containers.run raises 409 Conflict, the job
+        # gets re-queued forever and no batch jobs ever actually start.
+        try:
+            old = self.docker.containers.get(job_enum.value)
+            try:
+                old.remove(force=True)
+                print(f"[CTRL] removed stale container '{job_enum.value}'", flush=True)
+            except docker.errors.APIError as e:
+                print(f"[CTRL] could not remove stale '{job_enum.value}': {e}",
+                      flush=True)
+        except docker.errors.NotFound:
+            pass
+        except docker.errors.APIError as e:
+            print(f"[CTRL] error probing for stale '{job_enum.value}': {e}",
+                  flush=True)
+
         try:
             container = self.docker.containers.run(
                 image,
@@ -367,153 +737,202 @@ class Controller:
                 remove=False,
                 name=job_enum.value,
             )
-        except docker.errors.APIError as exc:
-            print(f"[CTRL] Failed to start {job_enum.value}: {exc}")
+        except docker.errors.APIError as e:
+            print(f"[CTRL] start {job_enum.value} failed: {e}", flush=True)
+            own_queue.insert(0, job_enum)
+            return
+        except Exception as e:
+            # Catch-all so an unexpected exception doesn't silently crash the main
+            # loop and leave the controller spinning on memcached only.
+            print(f"[CTRL] start {job_enum.value} unexpected error: "
+                  f"{type(e).__name__}: {e}", flush=True)
+            own_queue.insert(0, job_enum)
             return
 
-        self.running[job_enum.value] = {
-            "container": container,
-            "cores": list(cores),
-            "job_enum": job_enum,
-            "threads": threads,
-        }
-        self.logger.job_start(job_enum, cores, threads)
-        self.queue.pop(0)
+        slot.container = container
+        slot.job_enum = job_enum
+        slot.paused = False
+        self.logger.job_start(job_enum, slot.cores, threads)
+        print(
+            f"[CTRL] slot_{slot.name}: started {job_enum.value} "
+            f"on cores={slot.cores} threads={threads}",
+            flush=True,
+        )
 
+    def _check_slot(
+        self,
+        slot: Slot,
+        own_queue: list,
+        steal_from: Optional[list] = None,
+    ) -> None:
+        """Reap a finished container, then start the next job in the slot."""
+        c = slot.container
+        if c is None:
+            self._start_slot(slot, own_queue, steal_from)
+            return
+        try:
+            c.reload()
+            status = c.status
+        except docker.errors.NotFound:
+            status = "exited"
+        except docker.errors.APIError:
+            return
 
-    def _check_finished_jobs(self) -> None:
-        """Detect completed containers, log them, and reclaim their cores."""
-        finished: list[str] = []
-        for name, info in self.running.items():
+        if status == "exited":
             try:
-                info["container"].reload()
-                status = info["container"].status
-            except docker.errors.NotFound:
-                status = "exited"
-            except docker.errors.APIError as exc:
-                print(f"[CTRL] docker reload error for {name}: {exc}")
-                continue
-
-            if status == "exited":
-                exit_code: int = info["container"].attrs["State"]["ExitCode"]
-                if exit_code == 0:
-                    print(f"[CTRL] {name} completed successfully")
-                else:
-                    print(f"[CTRL] {name} exited with code {exit_code} - marking done")
-                    self.logger.custom_event(
-                        info["job_enum"], f"exit_code={exit_code}"
-                    )
-                self.logger.job_end(info["job_enum"])
-
-                try:
-                    info["container"].remove()
-                except docker.errors.APIError:
-                    pass
-                finished.append(name)
-
-        for name in finished:
-            del self.running[name]
-
-        if finished:
-            self._rebalance_batch_cores()
-
-
-    def _rebalance_batch_cores(self) -> None:
-        """After a job finishes, redistribute free cores evenly among remaining jobs."""
-        if not self.running:
-            return
-
-        free = self._free_cores()
-        if not free:
-            return
-
-        # Give each running job one extra core from the free pool, round-robin
-        for core in free:
-            for name, info in self.running.items():
-                if core not in info["cores"]:
-                    new_cores = sorted(info["cores"] + [core])
-                    try:
-                        info["container"].update(cpuset_cpus=cores_to_cpuset(new_cores))
-                        info["cores"] = new_cores
-                        self.logger.update_cores(info["job_enum"], new_cores)
-                        print(f"[CTRL] Gave free core {core} to {name} -> {new_cores}")
-                    except docker.errors.APIError as exc:
-                        print(f"[CTRL] Rebalance update failed for {name}: {exc}")
-                    break
+                ec = c.attrs["State"]["ExitCode"]
+            except Exception:
+                ec = 0
+            if ec != 0:
+                self.logger.custom_event(slot.job_enum, f"exit_code={ec}")
+                print(
+                    f"[CTRL] slot_{slot.name}: {slot.job_enum.value} "
+                    f"exited code={ec}",
+                    flush=True,
+                )
+            else:
+                print(
+                    f"[CTRL] slot_{slot.name}: {slot.job_enum.value} done",
+                    flush=True,
+                )
+            self.logger.job_end(slot.job_enum)
+            try:
+                c.remove()
+            except docker.errors.APIError:
+                pass
+            slot.container = None
+            slot.job_enum = None
+            slot.paused = False
+            self._start_slot(slot, own_queue, steal_from)
 
 
     # Main loop
     def run(self) -> None:
         try:
             self._init_memcached()
+            # Kick off initial jobs in both slots
+            self._start_slot(self.slot_A, self.slot_A_queue, self.slot_B_queue)
+            self._start_slot(self.slot_B, self.slot_B_queue, self.slot_A_queue)
+
+            # Slot management (container.reload over docker socket) is far more
+            # expensive than tier-ticking (just a CPU read + maybe a syscall);
+            # we run them on independent cadences so POLL_INTERVAL can go below
+            # 0.1 s without paying the docker tax 10+x per second.
+            last_slot_check = 0.0
+            last_cpu_log    = 0.0
+            CPU_LOG_S       = max(POLL_INTERVAL, 0.1)   # 10 Hz max for the per-core CSV
 
             while not self._stop:
-                # Reap finished jobs and rebalance cores
-                prev = len(self.running)
-                self._check_finished_jobs() # autoremove=False to get logs from stopped containers
+                now = time.monotonic()
 
-                # Adjust memcached cores based on current CPU utilization
-                if self.memcached_pid:
-                    cpu = read_memcached_cpu(
-                        self.memcached_pid, len(self.memcached_cores)
+                # Slot management: reap finished containers, start next jobs.
+                if now - last_slot_check >= SLOT_CHECK_S:
+                    self._check_slot(self.slot_A, self.slot_A_queue, self.slot_B_queue)
+                    self._check_slot(self.slot_B, self.slot_B_queue, self.slot_A_queue)
+                    last_slot_check = now
+                    # Exit condition only relevant after a slot check
+                    if (self.slot_A.container is None and self.slot_B.container is None
+                            and not self.slot_A_queue and not self.slot_B_queue):
+                        print("[CTRL] All batch jobs done.", flush=True)
+                        break
+
+                # Tier tick (every poll). Non-blocking read returns CPU% since
+                # the previous call, so the POLL_INTERVAL sleep at the bottom
+                # determines the measurement window.
+                if self.memcached_proc is not None:
+                    if USE_TOTAL_CPU:
+                        # Friend's design: tier-invariant total CPU% drives
+                        # the per-tier transition table.
+                        total = read_memcached_total_cpu(self.memcached_proc)
+                        self._tick_tier_total(total)
+                    else:
+                        cpu_pc = read_memcached_cpu_proc(
+                            self.memcached_proc,
+                            len(TIER_DEFS[self._mem_tier]["mem"]),
+                        )
+                        self._tick_tier(cpu_pc)
+
+                # Per-core CPU log (capped at 10 Hz to keep the CSV manageable).
+                if now - last_cpu_log >= CPU_LOG_S:
+                    per_core = psutil.cpu_percent(percpu=True)
+                    self._cpu_writer.writerow(
+                        [datetime.now().isoformat()]
+                        + [f"{v:.2f}" for v in per_core[:4]]
                     )
-                    self._adjust_memcached(cpu)
-
-                # Log per-core CPU utilization
-                per_core = psutil.cpu_percent(percpu=True)
-                self._cpu_writer.writerow(
-                    [datetime.now().isoformat()] + [f"{v:.2f}" for v in per_core[:4]]
-                )
-                self._cpu_log_fh.flush()
-
-                # Start a new batch job if resources are available
-                self._start_next_job()
-
-                # Exit when every job has finished
-                if not self.queue and not self.running:
-                    print("[CTRL] All batch jobs finished, controller exiting.")
-                    break
+                    self._cpu_log_fh.flush()
+                    last_cpu_log = now
 
                 time.sleep(POLL_INTERVAL)
 
         except KeyboardInterrupt:
-            print("\n[CTRL] Interrupted.")
+            print("\n[CTRL] interrupted", flush=True)
         finally:
             self._shutdown()
 
-
     def _shutdown(self) -> None:
-        """Stop any running containers and finalize the log."""
-        for name, info in self.running.items():
-            print(f"[CTRL] Stopping {name} ...")
+        # Stop containers, unpause first if needed
+        for slot in (self.slot_A, self.slot_B):
+            if slot.container is None:
+                continue
             try:
-                info["container"].stop(timeout=10)
-                info["container"].remove()
-            except docker.errors.APIError:
+                if slot.paused:
+                    slot.container.unpause()
+            except Exception:
                 pass
-            self.logger.job_end(info["job_enum"])
+            try:
+                slot.container.stop(timeout=10)
+            except Exception:
+                pass
+            try:
+                slot.container.remove()
+            except Exception:
+                pass
+            if slot.job_enum is not None:
+                try:
+                    self.logger.custom_event(
+                        slot.job_enum, "terminated_during_shutdown"
+                    )
+                except Exception:
+                    pass
+                try:
+                    self.logger.job_end(slot.job_enum)
+                except Exception:
+                    pass
 
-        # Restore memcached to all cores so it handles remaining mcperf load
-        # at full capacity after batch jobs are done.
-        if self.memcached_pid and self.memcached_cores != TOTAL_CORES:
+        # Restore memcached to all cores so it handles any remaining mcperf load
+        if self.memcached_pid and TIER_DEFS[self._mem_tier]["mem"] != TOTAL_CORES:
             try:
                 taskset_pid(self.memcached_pid, TOTAL_CORES)
                 self.logger.update_cores(Job.MEMCACHED, TOTAL_CORES)
-                print(f"[CTRL] memcached restored to all cores {TOTAL_CORES}")
-            except Exception as exc:
-                print(f"[CTRL] Could not restore memcached cores: {exc}")
+                print(f"[CTRL] memcached restored to {TOTAL_CORES}", flush=True)
+            except Exception as e:
+                print(f"[CTRL] restore memcached failed: {e}", flush=True)
 
-        self.logger.end()
-        print(f"[CTRL] Log written -> {self.logger.get_file_name()}")
-
-        # Close CPU log
+        try:
+            self.logger.end()
+            print(f"[CTRL] log -> {self.logger.get_file_name()}", flush=True)
+        except Exception:
+            pass
         try:
             self._cpu_log_fh.close()
-            print(f"[CTRL] CPU log written -> {self._cpu_log_path}")
+            print(f"[CTRL] cpu log -> {self._cpu_log_path}", flush=True)
         except Exception:
             pass
 
 
 # Entry point
 if __name__ == "__main__":
+    # Reserve scheduling priority for the controller. Without this the python
+    # process competes for CPU with memcached (cores 0-2 at peak) and batch
+    # (core 3), and under saturation our 50 ms poll can be delayed by 30+ ms of
+    # context-switch waiting, which is enough to miss the 5 s SLO budget. nice=-20 is
+    # the lowest niceness, telling the kernel to preempt other user processes
+    # whenever the controller becomes runnable. Requires root, which sudo gives.
+    try:
+        old = os.getpriority(os.PRIO_PROCESS, 0)
+        os.setpriority(os.PRIO_PROCESS, 0, -20)
+        new = os.getpriority(os.PRIO_PROCESS, 0)
+        print(f"[CTRL] Process nice priority: {old} -> {new}", flush=True)
+    except (OSError, PermissionError) as e:
+        print(f"[CTRL] Could not set nice priority (continuing): {e}", flush=True)
     Controller().run()
