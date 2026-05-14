@@ -103,32 +103,32 @@ analysis, e.g.:
 
 ```
 node-a: freqmine(6t, c2-7) → [blackscholes(4t, c2-5) ∥ vips(2t, c6-7)]
-                          → barnes(4t, c2-5) → radix(4t, c2-5)
+                          → barnes(6t, c2-7) → radix(8t, c2-7)
 node-b: canneal(4t, c0-3) → streamcluster(4t, c0-3)
 ```
 
-**Measured runtimes from real cluster run (date this when refreshed):**
+**Estimated runtimes (derived from Part 2 thread-scaling curves):**
 
-| job           | measured runtime | node  |
+| job           | estimated runtime | node  |
 |---|---|---|
 | freqmine      | ~87 s            | node-a (t=0, 6 threads, cores 2-7) |
 | blackscholes  | ~39 s            | node-a (after freqmine, 4t, parallel with vips) |
 | vips          | ~50 s            | node-a (after freqmine, 2t, parallel with blackscholes) |
-| barnes        | ~42 s            | node-a (after blackscholes+vips, 4t) |
-| radix         | ~12 s            | node-a (after barnes, 4t) |
+| barnes        | ~32 s            | node-a (after blackscholes+vips, 6t, cores 2-7) |
+| radix         | ~8 s             | node-a (after barnes, 8t oversubscribed on 6 cores 2-7) |
 | canneal       | ~81 s            | node-b (t=0, 4t) |
 | streamcluster | ~149 s           | node-b (after canneal, 4t) |
 
-- **node-a chain**: 87 + 50 + 42 + 12 = **~191 s**
+- **node-a chain**: 87 + 50 + 32 + 8 = **~177 s**
 - **node-b chain**: 81 + 149 = **~230 s**
-- **Measured makespan = 230 s** — the ~5 s above the node-b chain is
-  unexplained (startup overhead, scheduling latency, or measurement noise).
-  Don't optimise against this gap; treat 230 s as the bottleneck floor.
+- **Estimated makespan ≈ 230 s** — node-b remains the bottleneck with ~53 s
+  of slack on node-a. Startup overhead and scheduling latency add ~5 s in
+  practice. Don't optimise against this gap; treat 230 s as the bottleneck floor.
 
 ## What this means for optimisation
 
-**node-b is the bottleneck.** node-a finishes ~40 s earlier. Optimising the
-node-a chain alone caps out at ~40 s of slack before node-a becomes the new
+**node-b is the bottleneck.** node-a finishes ~53 s earlier. Optimising the
+node-a chain alone caps out at ~53 s of slack before node-a becomes the new
 bottleneck. To cut makespan further you must either shorten the node-b
 chain or find a way to use that node-a slack.
 
@@ -153,9 +153,11 @@ Three productive directions to explore:
 
 - **(c) Tighten the node-a DAG.** In the baseline, barnes waits for BOTH
   blackscholes AND vips, but blackscholes finishes ~11 s before vips. Since
-  barnes needs cores 2-5 and vips uses 6-7, you can change
-  `start_after=("blackscholes","vips")` to `start_after=("blackscholes",)`
-  and barnes starts ~11 s earlier while vips finishes on its own cores.
+  barnes uses all cores 2-7 (overlapping with vips on 6-7), the dependency
+  on vips is required. However, shrinking barnes to cores 2-5 (4t) would
+  let it start after blackscholes alone, gaining ~11 s at the cost of a
+  slower barnes (~42 s instead of ~32 s). Whether the net is positive
+  depends on the critical path — experiment with both.
   This alone won't beat the node-b bottleneck, but it widens the node-a
   slack so node-a doesn't become the new long pole after node-b improves.
 
@@ -191,8 +193,9 @@ Things to try, in rough order of likely payoff:
    the bottleneck node. Try `threads=8` on `cores=(0,1,2,3)`. Whether
    oversubscription helps or hurts is what the simulator will tell you.
 
-2. **Tighten the barnes dependency on node-a.** Drop `vips` from barnes's
-   `start_after`. Saves ~11 s on the node-a chain.
+2. **Tighten the barnes dependency on node-a.** Shrink barnes to cores 2-5
+   (4t) so it can drop `vips` from `start_after` and start ~11 s earlier.
+   Trades a slower barnes (~42 s vs ~32 s) for an earlier start.
 
 3. **Try (b) — parallel canneal + streamcluster on node-b.** Looks
    unpromising on paper but it's one cheap call. Tune thread counts to

@@ -69,8 +69,8 @@ return [
     Action("freqmine","node-a",(2,3,4,5,6,7),6),
     Action("blackscholes","node-a",(2,3,4,5),4,("freqmine",)),
     Action("vips","node-a",(6,7),2,("freqmine",)),
-    Action("barnes","node-a",(2,3,4,5),4,("blackscholes","vips")),
-    Action("radix","node-a",(2,3,4,5),4,("barnes",)),
+    Action("barnes","node-a",(2,3,4,5,6,7),6,("blackscholes","vips")),
+    Action("radix","node-a",(2,3,4,5,6,7),8,("barnes",)),
     Action("canneal","node-b",(0,1,2,3),4),
     Action("streamcluster","node-b",(0,1,2,3),4,("canneal",)),
 ]
@@ -78,15 +78,16 @@ return [
     ),
 
     "barnes_after_bs_only": (
-        "Loosen barnes' dep on vips: barnes (cores 2-5) and vips (cores 6-7) "
-        "use disjoint cores so barnes can start as soon as bs finishes.",
+        "Loosen barnes' dep on vips: barnes uses all 6 spare cores so it "
+        "must wait for vips (cores 6-7) too, but if we shrink barnes to "
+        "cores 2-5 it can start as soon as bs finishes while vips continues on 6-7.",
         '''
 return [
     Action("freqmine","node-a",(2,3,4,5,6,7),6),
     Action("blackscholes","node-a",(2,3,4,5),4,("freqmine",)),
     Action("vips","node-a",(6,7),2,("freqmine",)),
     Action("barnes","node-a",(2,3,4,5),4,("blackscholes",)),
-    Action("radix","node-a",(2,3,4,5),4,("barnes",)),
+    Action("radix","node-a",(2,3,4,5,6,7),8,("barnes",)),
     Action("canneal","node-b",(0,1,2,3),4),
     Action("streamcluster","node-b",(0,1,2,3),4,("canneal",)),
 ]
@@ -101,7 +102,7 @@ return [
     Action("freqmine","node-a",(2,3,4,5,6,7),6),
     Action("blackscholes","node-a",(2,3,4,5),4,("freqmine",)),
     Action("vips","node-a",(6,7),2,("freqmine",)),
-    Action("barnes","node-a",(2,3,4,5),4,("blackscholes","vips")),
+    Action("barnes","node-a",(2,3,4,5,6,7),6,("blackscholes","vips")),
     Action("radix","node-a",(6,7),2,("vips",)),
     Action("canneal","node-b",(0,1,2,3),4),
     Action("streamcluster","node-b",(0,1,2,3),4,("canneal",)),
@@ -118,8 +119,8 @@ return [
     Action("freqmine","node-a",(2,3,4,5,6,7),6),
     Action("blackscholes","node-a",(2,3,4),3,("freqmine",)),
     Action("vips","node-a",(5,6,7),3,("freqmine",)),
-    Action("barnes","node-a",(2,3,4,5),4,("blackscholes","vips")),
-    Action("radix","node-a",(2,3,4,5),4,("barnes",)),
+    Action("barnes","node-a",(2,3,4,5,6,7),6,("blackscholes","vips")),
+    Action("radix","node-a",(2,3,4,5,6,7),8,("barnes",)),
     Action("canneal","node-b",(0,1,2,3),4),
     Action("streamcluster","node-b",(0,1,2,3),4,("canneal",)),
 ]
@@ -135,8 +136,8 @@ return [
     Action("freqmine","node-a",(2,3,4,5),4),
     Action("vips","node-a",(6,7),2),
     Action("blackscholes","node-a",(2,3,4,5),4,("freqmine",)),
-    Action("barnes","node-a",(2,3,4,5),4,("blackscholes","vips")),
-    Action("radix","node-a",(2,3,4,5),4,("barnes",)),
+    Action("barnes","node-a",(2,3,4,5,6,7),6,("blackscholes","vips")),
+    Action("radix","node-a",(2,3,4,5,6,7),8,("barnes",)),
     Action("canneal","node-b",(0,1,2,3),4),
     Action("streamcluster","node-b",(0,1,2,3),4,("canneal",)),
 ]
@@ -144,7 +145,7 @@ return [
     ),
 
     "barnes_after_bs_radix_parallel": (
-        "Combine: barnes loosened from vips AND radix on cores 6-7 in "
+        "Combine: barnes on cores 2-5 loosened from vips AND radix on cores 6-7 in "
         "parallel with barnes. Most aggressive node-a packing.",
         '''
 return [
@@ -152,7 +153,7 @@ return [
     Action("blackscholes","node-a",(2,3,4,5),4,("freqmine",)),
     Action("vips","node-a",(6,7),2,("freqmine",)),
     Action("barnes","node-a",(2,3,4,5),4,("blackscholes",)),
-    Action("radix","node-a",(6,7),2,("vips",)),
+    Action("radix","node-a",(6,7),4,("vips",)),
     Action("canneal","node-b",(0,1,2,3),4),
     Action("streamcluster","node-b",(0,1,2,3),4,("canneal",)),
 ]

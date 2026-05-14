@@ -7,7 +7,7 @@ loader used by evaluator.py) is fixed and must not be touched.
 The policy is the hand-crafted Part 3.1 plan, translated into the
 declarative `Action` form so the LLM can rearrange / repartition cleanly:
 
-  node-a: freqmine(6t) -> [blackscholes(4t) || vips(2t)] -> barnes(4t) -> radix(4t)
+  node-a: freqmine(6t) -> [blackscholes(4t) || vips(2t)] -> barnes(6t) -> radix(8t)
   node-b: canneal(4t) -> streamcluster(4t)
 
 Memcached is NOT scheduled here -- it's always-on on node-a cores 0-1 and
@@ -39,9 +39,9 @@ def build_plan() -> list[Action]:
                start_after=("freqmine",)),
         Action(job="vips",         node="node-a", cores=(6, 7),             threads=2,
                start_after=("freqmine",)),
-        Action(job="barnes",       node="node-a", cores=(2, 3, 4, 5),       threads=4,
+        Action(job="barnes",       node="node-a", cores=(2, 3, 4, 5, 6, 7), threads=6,
                start_after=("blackscholes", "vips")),
-        Action(job="radix",        node="node-a", cores=(2, 3, 4, 5),       threads=4,
+        Action(job="radix",        node="node-a", cores=(2, 3, 4, 5, 6, 7), threads=8,
                start_after=("barnes",)),
 
         # ── node-b chain ──────────────────────────────────────────────

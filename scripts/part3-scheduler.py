@@ -9,7 +9,8 @@ Policy (derived from Part 2 interference analysis):
       Phase 1: freqmine       cores 2-7  (6 threads)   long job, scales well, medium cache
       Phase 2: blackscholes   cores 2-5  (4 threads) \  CPU-bound, negligible BW — run in
                vips           cores 6-7  (2 threads) /  parallel; disjoint core sets
-      Phase 3: barnes         cores 2-5  (4 threads)   after the pair above
+      Phase 3: barnes         cores 2-7  (6 threads)   after the pair above
+      Phase 4: radix          cores 2-7  (8 threads)   oversubscribed, bursty workload
 
   node-b-4core (n2d-highcpu-4, 3.6 GB):
     No memcached. BW/memory-latency hogs isolated here, one at a time.
