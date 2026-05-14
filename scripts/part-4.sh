@@ -22,8 +22,9 @@ SSH_OPTS="-i $SSH_KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/nul
 RUN_NUMBER=1
 QPS_SEED=2345          # Part 4 Q3 seed
 QPS_INTERVAL=15        # seconds per load step (Q3); override with --qps-interval
-MCPERF_DURATION=1800   # 30 min
-DATA_DIR="data/part-4-q3" # local results directory; override with --data-dir
+MCPERF_DURATION=1800   # 30 min, override with --duration
+DATA_DIR="data/p4/q3" # local results directory, override with --data-dir
+POLICY=""              # CONTROLLER_POLICY for the controller, empty -> default
 
 # Parse args
 while [[ $# -gt 0 ]]; do

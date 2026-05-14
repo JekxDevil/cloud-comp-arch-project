@@ -11,10 +11,10 @@
 #   bash scripts/part-4-q4-sweep.sh [--intervals "4 3 2 1"] [--runs "1 2 3"]
 #
 # Results:
-#   data/part-4-q4-int4/run_{1,2,3}/   (interval = 4 s)
-#   data/part-4-q4-int3/run_{1,2,3}/   (interval = 3 s)
-#   data/part-4-q4-int2/run_{1,2,3}/   (interval = 2 s)
-#   data/part-4-q4-int1/run_{1,2,3}/   (interval = 1 s)
+#   data/p4/q4-int4/run_{1,2,3}/   (interval = 4 s)
+#   data/p4/q4-int3/run_{1,2,3}/   (interval = 3 s)
+#   data/p4/q4-int2/run_{1,2,3}/   (interval = 2 s)
+#   data/p4/q4-int1/run_{1,2,3}/   (interval = 1 s)
 
 set -euo pipefail
 
@@ -46,7 +46,7 @@ done
 log() { echo "[SWEEP] $*"; }
 
 for INTERVAL in "${INTERVALS[@]}"; do
-  DATA_DIR="data/part-4-q4-int${INTERVAL}"
+  DATA_DIR="data/p4/q4-int${INTERVAL}"
   log "========================================"
   log "Interval = ${INTERVAL}s  ->  ${DATA_DIR}"
   log "========================================"
@@ -63,5 +63,5 @@ done
 
 log "All sweeps done.  Results:"
 for INTERVAL in "${INTERVALS[@]}"; do
-  log "  data/part-4-q4-int${INTERVAL}/"
+  log "  data/p4/q4-int${INTERVAL}/"
 done
