@@ -57,6 +57,12 @@ def parse_taskset_cores(args_list):
     return cores
 
 
+def parse_nthreads(args_list):
+    args_str = ' '.join(args_list)
+    m = re.search(r'\s-n\s+(\d+)', args_str)
+    return int(m.group(1)) if m else None
+
+
 def node_core_count(node_full):
     m = re.search(r'(\d+)core', node_full)
     if m:
@@ -91,14 +97,15 @@ def parse_pods_json(path):
         if not m:
             continue
         job_name = m.group(1)
-        cores = parse_taskset_cores(args) or list(range(n_cores))
+        cores    = parse_taskset_cores(args) or list(range(n_cores))
+        nthreads = parse_nthreads(args) or len(cores)
         for cstatus in status.get('containerStatuses', []):
             state = cstatus.get('state', {})
             if 'terminated' in state:
                 t        = state['terminated']
                 start_ts = parse_timestamp(t['startedAt'])
                 end_ts   = parse_timestamp(t['finishedAt'])
-                jobs.append((job_name, node_short, cores, start_ts, end_ts))
+                jobs.append((job_name, node_short, cores, start_ts, end_ts, nthreads))
     return jobs, memcached_entry
 
 
@@ -126,7 +133,7 @@ def _text_color(hex_color):
     return 'black' if (0.299 * r + 0.587 * g + 0.114 * b) > 0.45 else 'white'
 
 
-def make_figure(run_idx, jobs, memcached_entry, mcperf_rows, title):
+def make_figure(run_idx, jobs, memcached_entry, mcperf_rows):
     t0       = min(j[3] for j in jobs)
     t_end    = max(j[4] for j in jobs)
     makespan = t_end - t0
@@ -139,7 +146,7 @@ def make_figure(run_idx, jobs, memcached_entry, mcperf_rows, title):
     mc_end = t_end
 
     node_info = {mc_node: mc_total_cores}
-    for (_, node, _, _, _) in jobs:
+    for (_, node, _, _, _, _) in jobs:
         if node not in node_info:
             node_info[node] = 4 if 'node-b' in node else 8
     ordered_nodes = sorted(node_info.keys())
@@ -158,7 +165,6 @@ def make_figure(run_idx, jobs, memcached_entry, mcperf_rows, title):
     fig_h       = (lat_ratio + gantt_sum) * CORE_H + 2.5
 
     fig = plt.figure(figsize=(14, fig_h))
-    fig.suptitle(title, fontsize=12, fontweight='bold', y=0.998)
 
     outer_gs = GridSpec(
         2, 1, figure=fig,
@@ -182,7 +188,8 @@ def make_figure(run_idx, jobs, memcached_entry, mcperf_rows, title):
     node_axs = {node: gantt_axes[i] for i, node in enumerate(ordered_nodes)}
 
     # ── Latency (top) ─────────────────────────────────────────────────────────
-    y_top = 1.2  # fixed y-axis cutoff at 1.2 ms
+    max_bar = max((p for *_, p in bars), default=0.0) if bars else 0.0
+    y_top   = max(1.2, max_bar * 1.3)  # at least 1.2 ms; expand if bars exceed it
     if bars:
         for x_s, w, p in bars:
             ax_lat.bar(x_s, p, width=w, align='edge',
@@ -270,18 +277,19 @@ def make_figure(run_idx, jobs, memcached_entry, mcperf_rows, title):
                      color=JOB_COLORS['memcached'],
                      label=f'memcached  (T={len(mc_cores)})')
 
-        for (job, jnode, cores, jstart, jend) in jobs:
+        for (job, jnode, cores, jstart, jend, nthreads) in jobs:
             if jnode != node:
                 continue
             color = JOB_COLORS.get(job, '#888888')
             left  = jstart - t0
             width = jend - jstart
             draw_bar(ax, cores, left=left, width=width,
-                     color=color, label=f'{job}  (T={len(cores)})')
-            ax.axvline(left,         color=color, linewidth=0.8,
-                       linestyle=':', alpha=0.75, zorder=1)
-            ax.axvline(left + width, color=color, linewidth=0.8,
-                       linestyle=':', alpha=0.75, zorder=1)
+                     color=color, label=f'{job}  (T={nthreads})')
+            for _ax in gantt_axes:
+                _ax.axvline(left,         color=color, linewidth=1.4,
+                            linestyle='--', alpha=0.9, zorder=1)
+                _ax.axvline(left + width, color=color, linewidth=1.4,
+                            linestyle='--', alpha=0.9, zorder=1)
 
         ax.annotate(
             f'{node}\n({n}-core)',
@@ -312,15 +320,13 @@ def main():
         mcperf_rows           = parse_mcperf(mcperf_path)
         print(f'  {len(jobs)} batch jobs, {len(mcperf_rows)} mcperf intervals')
         for j in jobs:
-            print(f'    {j[0]:15s}  node={j[1]}  cores={j[2]}  dur={j[4]-j[3]:.0f}s')
+            print(f'    {j[0]:15s}  node={j[1]}  cores={j[2]}  T={j[5]}  dur={j[4]-j[3]:.0f}s')
 
         fig = make_figure(
             run_idx         = i,
             jobs            = jobs,
             memcached_entry = memcached_entry,
             mcperf_rows     = mcperf_rows,
-            title           = (f'Memcached p95 Latency (top) and '
-                               f'Concurrent/Colocated Jobs (bottom) of Run{run_num}'),
         )
         out_path = os.path.join(args.out_dir, f'part3_run{run_num}.png')
         fig.savefig(out_path, bbox_inches='tight', dpi=150)

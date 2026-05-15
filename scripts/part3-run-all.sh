@@ -3,13 +3,12 @@ set -euo pipefail
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 RUNS=3
-CLIENT_MEASURE="client-measure-wf2w"
+CLIENT_MEASURE="client-measure-3v04"
 ZONE="europe-west1-b"
-AGENT_A_IP="10.0.16.4"
-AGENT_B_IP="10.0.16.6"
+AGENT_A_IP="10.0.16.6"
+AGENT_B_IP="10.0.16.4"
 MCPERF_DIR="~/memcache-perf-dynamic"
 OUTPUT_DIR="results"
-# Swap to part3-scheduler-v2.py to test the wider-core policy (barnes/radix on 2-7)
 SCHEDULER="scripts/part3-scheduler.py"
 
 mkdir -p "${OUTPUT_DIR}"
