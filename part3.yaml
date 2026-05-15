@@ -18,13 +18,13 @@ spec:
   etcdClusters:
   - cpuRequest: 200m
     etcdMembers:
-    - instanceGroup: master-europe-west1-b
+    - instanceGroup: master-europe-west6-b
       name: a
     memoryRequest: 100Mi
     name: main
   - cpuRequest: 100m
     etcdMembers:
-    - instanceGroup: master-europe-west1-b
+    - instanceGroup: master-europe-west6-b
       name: a
     memoryRequest: 100Mi
     name: events
@@ -44,8 +44,8 @@ spec:
   sshAccess:
   - 0.0.0.0/0
   subnets:
-  - name: europe-west1
-    region: europe-west1
+  - name: europe-west6
+    region: europe-west6
     type: Public
   topology:
     dns:
@@ -63,7 +63,7 @@ metadata:
   creationTimestamp: null
   labels:
     kops.k8s.io/cluster: part3.k8s.local
-  name: master-europe-west1-b
+  name: master-europe-west6-b
 spec:
   image: ubuntu-os-cloud/ubuntu-2404-noble-amd64-v20250130
   machineType: e2-standard-2
@@ -71,12 +71,12 @@ spec:
   minSize: 1
   nodeLabels:
     cloud.google.com/metadata-proxy-ready: "true"
-    kops.k8s.io/instancegroup: master-europe-west1-b
+    kops.k8s.io/instancegroup: master-europe-west6-b
   role: Master
   subnets:
-  - europe-west1
+  - europe-west6
   zones:
-  - europe-west1-b
+  - europe-west6-b
 
 ---
 
@@ -94,13 +94,13 @@ spec:
   minSize: 1
   nodeLabels:
     cloud.google.com/metadata-proxy-ready: "true"
-    kops.k8s.io/instancegroup: nodes-europe-west1-b
+    kops.k8s.io/instancegroup: nodes-europe-west6-b
     cca-project-nodetype: "client-measure"
   role: Node
   subnets:
-  - europe-west1
+  - europe-west6
   zones:
-  - europe-west1-b
+  - europe-west6-b
 ---
 
 apiVersion: kops.k8s.io/v1alpha2
@@ -117,13 +117,13 @@ spec:
   minSize: 1
   nodeLabels:
     cloud.google.com/metadata-proxy-ready: "true"
-    kops.k8s.io/instancegroup: nodes-europe-west1-b
+    kops.k8s.io/instancegroup: nodes-europe-west6-b
     cca-project-nodetype: "client-agent-a"
   role: Node
   subnets:
-  - europe-west1
+  - europe-west6
   zones:
-  - europe-west1-b
+  - europe-west6-b
 
 ---
 
@@ -141,13 +141,13 @@ spec:
   minSize: 1
   nodeLabels:
     cloud.google.com/metadata-proxy-ready: "true"
-    kops.k8s.io/instancegroup: nodes-europe-west1-b
+    kops.k8s.io/instancegroup: nodes-europe-west6-b
     cca-project-nodetype: "client-agent-b"
   role: Node
   subnets:
-  - europe-west1
+  - europe-west6
   zones:
-  - europe-west1-b
+  - europe-west6-b
 
 ---
 apiVersion: kops.k8s.io/v1alpha2
@@ -164,13 +164,13 @@ spec:
   minSize: 1
   nodeLabels:
     cloud.google.com/metadata-proxy-ready: "true"
-    kops.k8s.io/instancegroup: nodes-europe-west1-b
+    kops.k8s.io/instancegroup: nodes-europe-west6-b
     cca-project-nodetype: "node-a-8core"
   role: Node
   subnets:
-  - europe-west1
+  - europe-west6
   zones:
-  - europe-west1-b
+  - europe-west6-b
 
 ---
 apiVersion: kops.k8s.io/v1alpha2
@@ -187,10 +187,10 @@ spec:
   minSize: 1
   nodeLabels:
     cloud.google.com/metadata-proxy-ready: "true"
-    kops.k8s.io/instancegroup: nodes-europe-west1-b
+    kops.k8s.io/instancegroup: nodes-europe-west6-b
     cca-project-nodetype: "node-b-4core"
   role: Node
   subnets:
-  - europe-west1
+  - europe-west6
   zones:
-  - europe-west1-b
+  - europe-west6-b

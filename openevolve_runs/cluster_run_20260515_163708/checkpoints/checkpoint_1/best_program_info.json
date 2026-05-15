@@ -1,0 +1,19 @@
+{
+  "id": "1900e349-06ed-4b82-85a0-ebde126903ae",
+  "generation": 0,
+  "iteration": 0,
+  "current_iteration": 1,
+  "metrics": {
+    "combined_score": -Infinity,
+    "makespan_s": 223.770898103714,
+    "makespan_speedup": 0.9786795416913295,
+    "worst_p95_us": Infinity,
+    "mean_p95_us": Infinity,
+    "slo_violation_ratio": 1.0,
+    "valid": 1.0,
+    "n_mcperf_samples": 0
+  },
+  "language": "python",
+  "timestamp": 1778856078.724569,
+  "saved_at": 1778856359.332603
+}

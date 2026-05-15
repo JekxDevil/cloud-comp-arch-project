@@ -1,0 +1,40 @@
+2026-05-15 16:37:09,407 - openevolve.controller - INFO - Logging to openevolve_runs/cluster_run_20260515_163708/logs/openevolve_20260515_163709.log
+2026-05-15 16:37:09,483 - openevolve.controller - INFO - Set random seed to 42 for reproducibility
+2026-05-15 16:37:09,511 - openevolve.llm.openai - INFO - Initialized OpenAI LLM with model: meta-llama/Llama-3.3-70B-Instruct
+2026-05-15 16:37:09,511 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: meta-llama/Llama-3.3-70B-Instruct (weight: 1.00)
+2026-05-15 16:37:09,517 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-05-15 16:37:09,517 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-05-15 16:37:09,518 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-05-15 16:37:09,524 - openevolve.evaluator - INFO - Successfully loaded evaluation function from openevolve_strategy2/evaluator.py
+2026-05-15 16:37:09,524 - openevolve.evaluator - INFO - Initialized evaluator with openevolve_strategy2/evaluator.py
+2026-05-15 16:37:09,524 - openevolve.controller - INFO - Initialized OpenEvolve with openevolve/initial_program.py
+2026-05-15 16:37:09,524 - openevolve.controller - INFO - Adding initial program to database
+2026-05-15 16:41:18,718 - openevolve.evaluator - INFO - Evaluated program 1900e349-06ed-4b82-85a0-ebde126903ae in 249.19s: combined_score=-inf, makespan_s=223.7709, makespan_speedup=0.9787, worst_p95_us=inf, mean_p95_us=inf, slo_violation_ratio=1.0000, valid=1.0000, n_mcperf_samples=0.0000
+2026-05-15 16:41:18,724 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'combined_score': 2, 'makespan_speedup': 2}
+2026-05-15 16:41:18,762 - openevolve.process_parallel - INFO - Initialized process parallel controller with 1 workers
+2026-05-15 16:41:18,763 - openevolve.process_parallel - INFO - Set max None tasks per child
+2026-05-15 16:41:18,764 - openevolve.process_parallel - INFO - Started process pool with 1 processes
+2026-05-15 16:41:18,764 - openevolve.controller - INFO - Using island-based evolution with 2 islands
+2026-05-15 16:41:18,764 - openevolve.database - INFO - Island Status:
+2026-05-15 16:41:18,764 - openevolve.database - INFO -  * Island 0: 1 programs, best=-inf, avg=-inf, diversity=0.00, gen=0 (best: 1900e349-06ed-4b82-85a0-ebde126903ae)
+2026-05-15 16:41:18,764 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-05-15 16:41:18,764 - openevolve.process_parallel - INFO - Starting process-based evolution from iteration 1 for 30 iterations (total: 31)
+2026-05-15 16:41:18,781 - openevolve.process_parallel - INFO - Early stopping disabled
+2026-05-15 16:45:59,330 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'combined_score': 2, 'makespan_speedup': 0}
+2026-05-15 16:45:59,331 - openevolve.process_parallel - INFO - Iteration 1: Program 5a415951-1887-4198-830d-3855c9eaf7d1 (parent: 1900e349-06ed-4b82-85a0-ebde126903ae) completed in 279.62s
+2026-05-15 16:45:59,331 - openevolve.process_parallel - INFO - Metrics: combined_score=-inf, makespan_s=226.3806, makespan_speedup=0.9674, worst_p95_us=inf, mean_p95_us=inf, slo_violation_ratio=1.0000, valid=1.0000, n_mcperf_samples=0.0000
+2026-05-15 16:45:59,331 - openevolve.process_parallel - INFO - Checkpoint interval reached at iteration 1
+2026-05-15 16:45:59,331 - openevolve.database - INFO - Island Status:
+2026-05-15 16:45:59,331 - openevolve.database - INFO -  * Island 0: 2 programs, best=-inf, avg=-inf, diversity=10.10, gen=1 (best: 1900e349-06ed-4b82-85a0-ebde126903ae)
+2026-05-15 16:45:59,331 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-05-15 16:45:59,332 - openevolve.database - INFO - Saved database with 2 programs to openevolve_runs/cluster_run_20260515_163708/checkpoints/checkpoint_1
+2026-05-15 16:45:59,332 - openevolve.controller - INFO - Saved best program at checkpoint 1 with metrics: combined_score=-inf, makespan_s=223.7709, makespan_speedup=0.9787, worst_p95_us=inf, mean_p95_us=inf, slo_violation_ratio=1.0000, valid=1.0000, n_mcperf_samples=0.0000
+2026-05-15 16:45:59,332 - openevolve.controller - INFO - Saved checkpoint at iteration 1 to openevolve_runs/cluster_run_20260515_163708/checkpoints/checkpoint_1
+2026-05-15 16:47:47,133 - openevolve.controller - INFO - Received signal 2, initiating graceful shutdown...
+2026-05-15 16:47:47,134 - openevolve.process_parallel - INFO - Graceful shutdown requested...
+2026-05-15 16:47:47,135 - openevolve.process_parallel - INFO - Shutdown requested, canceling remaining evaluations...
+2026-05-15 16:47:47,135 - openevolve.process_parallel - INFO - ✅ Evolution completed - Shutdown requested
+2026-05-15 16:47:47,135 - openevolve.controller - INFO - Evolution stopped due to shutdown request
+2026-05-15 16:49:07,978 - openevolve.controller - INFO - Force exit requested - terminating immediately
+2026-05-15 16:50:02,269 - openevolve.controller - INFO - Force exit requested - terminating immediately
+2026-05-15 16:50:08,968 - openevolve.controller - INFO - Force exit requested - terminating immediately

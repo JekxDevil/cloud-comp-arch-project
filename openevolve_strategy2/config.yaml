@@ -17,7 +17,7 @@
 #     openevolve/initial_program.py \
 #     openevolve_strategy2/evaluator.py
 
-max_iterations: 15              # each iteration is ~5 min on real hardware
+max_iterations: 30              # each iteration is ~5 min on real hardware
 checkpoint_interval: 1
 
 llm:
@@ -39,15 +39,15 @@ database:
   exploitation_ratio: 0.7       # exploit more, explore less — evals are expensive
   feature_dimensions:
     - "combined_score"
-    - "makespan_s"
+    - "makespan_speedup"
   feature_bins:
     combined_score: 5
-    makespan_s: 5
+    makespan_speedup: 5
 
 evaluator:
   cascade_evaluation: false
   parallel_evaluations: 1       # MUST be 1 — only one cluster
-  timeout: 600                  # 10 min max per eval (real cluster is slow)
+  timeout: 900                  # 15 min max per eval (real cluster is slow)
 
 diff_based_evolution: false
 max_code_length: 50000

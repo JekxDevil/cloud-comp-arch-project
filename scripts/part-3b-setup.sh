@@ -2,6 +2,8 @@
 # Fully automated Part 3 cluster startup.
 # Prereqs: kops, kubectl, gcloud all configured; ~/.ssh/cloud-computing.pub exists.
 # KOPS_STATE_STORE=gs://gs://cca-eth-2026-group-095-mariberger/ bash scripts/part-3b-setup.sh
+# gsutil -m rm -r gs://cca-eth-2026-group-095-mariberger/part3.k8s.local/ && bash scripts/part-3b-setup.sh
+# gcloud storage rm -r gs://cca-eth-2026-group-095-mariberger/part3.k8s.local/
 set -euo pipefail
 
 unset KOPS_STATE_STORE
@@ -9,7 +11,7 @@ unset KOPS_STATE_STORE
 KOPS_STATE_STORE="${KOPS_STATE_STORE:-gs://cca-eth-2026-group-095-mariberger}"
 export KOPS_STATE_STORE
 CLUSTER_NAME="part3.k8s.local"
-ZONE="europe-west1-b"
+ZONE="europe-west6-b"
 SSH_KEY="$HOME/.ssh/cloud-computing"
 MCPERF_DIR="~/memcache-perf-dynamic"
 
@@ -21,6 +23,7 @@ kops create -f part3.yaml
 kops create secret --name "${CLUSTER_NAME}" sshpublickey admin -i "${SSH_KEY}.pub"
 kops update cluster --name "${CLUSTER_NAME}" --yes --admin
 log "Waiting for cluster to validate (up to 15m)..."
+kops export kubecfg --name "${CLUSTER_NAME}" --admin
 kops validate cluster --name "${CLUSTER_NAME}" --wait 15m
 log "Cluster up."
 kubectl get nodes -o wide
