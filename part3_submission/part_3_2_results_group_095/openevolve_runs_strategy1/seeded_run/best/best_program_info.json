@@ -1,0 +1,20 @@
+{
+  "id": "3c59897f-98bf-448d-a2fd-c41f9f1a1ab2",
+  "generation": 0,
+  "iteration": 0,
+  "timestamp": 1778759993.9287832,
+  "parent_id": null,
+  "metrics": {
+    "combined_score": 1.0,
+    "makespan_s": 174.27452913033608,
+    "makespan_speedup": 1.0,
+    "worst_p95_us": 800.0,
+    "mean_p95_us": 524.184504154341,
+    "slo_violation_ratio": 0.0,
+    "slo_violation_us": 0.0,
+    "valid": 1.0,
+    "dag_edit_distance": 0.0
+  },
+  "language": "python",
+  "saved_at": 1778760557.605037
+}
