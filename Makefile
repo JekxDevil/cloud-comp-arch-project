@@ -144,6 +144,62 @@ start-search/bounded_total_v3:
 	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_v3 \
 		--data-dir data/p4/search/bounded_total_v3
 
+start-search/bounded_total_guard:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_guard \
+		--data-dir data/p4/search/bounded_total_guard
+
+start-search/bounded_total_stable:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_stable \
+		--data-dir data/p4/search/bounded_total_stable
+
+start-search/bounded_total_hybrid:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_hybrid \
+		--data-dir data/p4/search/bounded_total_hybrid
+
+start-search/bounded_total_adaptive:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_adaptive \
+		--data-dir data/p4/search/bounded_total_adaptive
+
+start-search/bounded_total_admit:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_admit \
+		--data-dir data/p4/search/bounded_total_admit
+
+start-search/bounded_total_warm:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_warm \
+		--data-dir data/p4/search/bounded_total_warm
+
+start-search/bounded_total_gate:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_gate \
+		--data-dir data/p4/search/bounded_total_gate
+
+start-search/bounded_total_gate_fast:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_gate_fast \
+		--data-dir data/p4/search/bounded_total_gate_fast
+
+start-search/bounded_total_gate_slotb:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_gate_slotb \
+		--data-dir data/p4/search/bounded_total_gate_slotb
+
+start-search/bounded_total_gate_slotb_wide:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_gate_slotb_wide \
+		--data-dir data/p4/search/bounded_total_gate_slotb_wide
+
+start-search/bounded_total_gate_slotb_more:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_gate_slotb_more \
+		--data-dir data/p4/search/bounded_total_gate_slotb_more
+
+start-search/bounded_total_gate_slotb_plus:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_gate_slotb_plus \
+		--data-dir data/p4/search/bounded_total_gate_slotb_plus
+
+start-search/bounded_total_gate_slotb_finish:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_gate_slotb_finish \
+		--data-dir data/p4/search/bounded_total_gate_slotb_finish
+
+start-search/bounded_total_gate_slotb_max:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_gate_slotb_max \
+		--data-dir data/p4/search/bounded_total_gate_slotb_max
+
 delete-cluster:
 	kops delete cluster --yes part$(PART).k8s.local
 
