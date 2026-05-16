@@ -22,8 +22,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PART4_SCRIPT="$SCRIPT_DIR/part-4.sh"
 
 # Use bash arrays to avoid any word-splitting / IFS edge cases
-INTERVALS=(4 3 2 1)
-RUNS_LIST=(1) # 2 3)
+INTERVALS=(3) #(4 3 2 1)
+RUNS_LIST=(1 2 3) # 2 3)
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
