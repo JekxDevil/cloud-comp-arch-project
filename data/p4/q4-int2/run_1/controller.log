@@ -1,443 +1,469 @@
 [CTRL] Process nice priority: 0 -> -20
+[CTRL] stress situation classifier armed, memcached pinned to [0, 1, 2]
+[CTRL] stress situation: active load seen total=9.7%
+[CTRL] stress situation: change 1 at total=62.0%
+[CTRL] stress situation: change 2 at total=151.9%
+[CTRL] stress situation=True reason=median_change_s=2.00, exec policy=bounded_total_gate_slotb_plus
+[CTRL] Process nice priority: -20 -> -20
 [CTRL] Policy: bounded_total_gate_slotb_plus  (TOTAL-CPU mode | hysteresis=5iters | poll=0.1s slot_check=0.1s | init_tier=3 min_tier=2 cap_tier=3 | thresholds={2: [(3, '>', 175.0)], 3: [(2, '<', 100.0)]} | shrink_confirm=20iters | startup_tier_lock=0.0s | slot_A_delay=0.0s slot_B_delay=0.0s | slot_A_guard=0.0/0.0 hold=0.0s confirm=1 | slot_A_dyn_throttle=10% 135.0/85.0 | admission_episode=170.0/130.0 A=2eps/120.0%/10iters/10.0s B=0eps/0.0%/1iters/0.0s)
-[CTRL] memcached PID=204403
+[CTRL] memcached PID=274243
 [CTRL] memcached pinned to [0, 1, 2] (tier 3)
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=0.0% (rule <100.0))
+[CTRL] admission high episode 1 at total=208.1%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=99.4% (rule <100.0))
 [CTRL] slot_B: started freqmine on cores=[2] threads=2
-[CTRL] admission high episode 1 at total=174.6%
+[CTRL] admission high episode 2 at total=184.4%
 [CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=184.4% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=87.8% (rule <100.0))
-[CTRL] admission high episode 2 at total=173.7%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=184.3% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=39.1% (rule <100.0))
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=29.4% (rule <100.0))
 [CTRL] slot_A: started blackscholes on cores=[3] threads=1
-[CTRL] admission high episode 3 at total=182.2%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=182.2% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=182.2%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=38.5% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=105.6%
-[CTRL] admission high episode 4 at total=189.1%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=189.1% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=189.1%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.4% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=124.2%
-[CTRL] admission high episode 5 at total=172.1%
-[CTRL] admission high episode 6 at total=179.6%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=179.6% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=179.6%
-[CTRL] admission high episode 7 at total=190.9%
-[CTRL] slot_A dynamic throttle removed at total=67.6%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.1% (rule <100.0))
+[CTRL] admission high episode 3 at total=188.1%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=188.1% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=188.1%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=38.8% (rule <100.0))
+[CTRL] admission high episode 4 at total=171.0%
+[CTRL] slot_A dynamic throttle removed at total=105.2%
+[CTRL] admission high episode 5 at total=177.4%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=177.4% (rule >175.0))
+[CTRL] admission high episode 6 at total=171.9%
+[CTRL] slot_A dynamic throttle to 10% at total=159.7%
+[CTRL] admission high episode 7 at total=171.6%
+[CTRL] slot_A dynamic throttle removed at total=76.8%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=86.7% (rule <100.0))
+[CTRL] admission high episode 8 at total=172.5%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=182.6% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=182.6%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=67.6% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=133.7%
+[CTRL] admission high episode 9 at total=170.5%
+[CTRL] admission high episode 10 at total=170.1%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=176.1% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=176.1%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=29.0% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=66.9%
+[CTRL] admission high episode 11 at total=170.6%
+[CTRL] admission high episode 12 at total=193.3%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=193.3% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=193.3%
+[CTRL] admission high episode 13 at total=181.1%
+[CTRL] slot_A dynamic throttle removed at total=57.9%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.3% (rule <100.0))
+[CTRL] admission high episode 14 at total=177.5%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=177.5% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=177.5%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=95.9% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=105.4%
+[CTRL] admission high episode 15 at total=172.4%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=189.8% (rule >175.0))
 [CTRL] slot_A: blackscholes done
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=87.4% (rule <100.0))
+[CTRL] admission high episode 16 at total=174.3%
+[CTRL] admission high episode 17 at total=183.7%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=183.7% (rule >175.0))
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=87.9% (rule <100.0))
 [CTRL] slot_A: started barnes on cores=[3] threads=1
-[CTRL] admission high episode 8 at total=187.3%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=187.3% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=187.3%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=67.0% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=105.5%
-[CTRL] admission high episode 9 at total=176.5%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=176.5% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=176.5%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=86.5% (rule <100.0))
-[CTRL] admission high episode 10 at total=180.8%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=180.8% (rule >175.0))
-[CTRL] slot_A dynamic throttle removed at total=67.7%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=66.4% (rule <100.0))
-[CTRL] admission high episode 11 at total=190.6%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=190.6% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=190.6%
-[CTRL] admission high episode 12 at total=170.8%
-[CTRL] admission high episode 13 at total=181.3%
-[CTRL] slot_A dynamic throttle removed at total=77.2%
-[CTRL] admission high episode 14 at total=196.4%
-[CTRL] slot_A dynamic throttle to 10% at total=191.8%
-[CTRL] admission high episode 15 at total=171.8%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=47.2% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=9.7%
-[CTRL] admission high episode 16 at total=178.2%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.2% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=178.2%
-[CTRL] admission high episode 17 at total=171.9%
-[CTRL] slot_A dynamic throttle removed at total=67.4%
-[CTRL] admission high episode 18 at total=214.8%
-[CTRL] slot_A dynamic throttle to 10% at total=196.6%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=58.1% (rule <100.0))
-[CTRL] admission high episode 19 at total=171.5%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=179.0% (rule >175.0))
-[CTRL] admission high episode 20 at total=171.9%
-[CTRL] slot_A dynamic throttle removed at total=67.4%
-[CTRL] admission high episode 21 at total=178.6%
-[CTRL] slot_A dynamic throttle to 10% at total=151.9%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.1% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=48.1%
-[CTRL] admission high episode 22 at total=182.1%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=182.1% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.7% (rule <100.0))
-[CTRL] admission high episode 23 at total=173.9%
+[CTRL] admission high episode 18 at total=180.8%
 [CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=180.8% (rule >175.0))
 [CTRL] slot_A dynamic throttle to 10% at total=180.8%
-[CTRL] admission high episode 24 at total=190.5%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=96.2% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=85.9%
-[CTRL] admission high episode 25 at total=170.2%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=176.7% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=141.9%
-[CTRL] admission high episode 26 at total=170.9%
-[CTRL] slot_A dynamic throttle removed at total=38.6%
-[CTRL] admission high episode 27 at total=180.1%
-[CTRL] admission high episode 28 at total=171.3%
-[CTRL] slot_A dynamic throttle to 10% at total=171.3%
-[CTRL] admission high episode 29 at total=180.9%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=76.9% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=99.1%
-[CTRL] admission high episode 30 at total=179.4%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=179.4% (rule >175.0))
-[CTRL] admission high episode 31 at total=217.3%
-[CTRL] slot_A dynamic throttle to 10% at total=208.1%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.9% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=57.9%
-[CTRL] admission high episode 32 at total=172.9%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.5% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=178.5%
-[CTRL] admission high episode 33 at total=181.0%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=96.0% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=96.2%
-[CTRL] admission high episode 34 at total=171.2%
-[CTRL] admission high episode 35 at total=170.0%
-[CTRL] admission high episode 36 at total=170.0%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.1% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=178.1%
-[CTRL] admission high episode 37 at total=171.5%
-[CTRL] admission high episode 38 at total=207.8%
-[CTRL] slot_A dynamic throttle removed at total=58.0%
-[CTRL] slot_A: barnes done
-[CTRL] slot_A: started radix on cores=[3] threads=1
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=19.3% (rule <100.0))
-[CTRL] admission high episode 39 at total=190.2%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=190.2% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=190.2%
-[CTRL] admission high episode 40 at total=190.1%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.4% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=67.5%
-[CTRL] admission high episode 41 at total=172.4%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=179.6% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=38.0% (rule <100.0))
-[CTRL] admission high episode 42 at total=180.1%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=180.1% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=180.1%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=95.1% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=152.0%
-[CTRL] admission high episode 43 at total=181.1%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=181.1% (rule >175.0))
-[CTRL] slot_A: radix done
-[CTRL] admission high episode 44 at total=193.8%
-[CTRL] admission high episode 45 at total=184.6%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=87.8% (rule <100.0))
-[CTRL] slot_A: started canneal on cores=[3] threads=1
-[CTRL] admission high episode 46 at total=180.2%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=180.2% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=180.2%
-[CTRL] admission high episode 47 at total=189.9%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=77.0% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=76.5%
-[CTRL] admission high episode 48 at total=190.6%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=190.6% (rule >175.0))
-[CTRL] admission high episode 49 at total=187.9%
-[CTRL] slot_A dynamic throttle to 10% at total=142.1%
-[CTRL] admission high episode 50 at total=208.0%
-[CTRL] admission high episode 51 at total=181.5%
-[CTRL] slot_A dynamic throttle removed at total=67.2%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.9% (rule <100.0))
-[CTRL] admission high episode 52 at total=171.1%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=177.1% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=177.1%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=96.3% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=57.8%
-[CTRL] admission high episode 53 at total=171.3%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=176.0% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=47.7% (rule <100.0))
-[CTRL] admission high episode 54 at total=170.3%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=191.0% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=191.0%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=86.4% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=38.6%
-[CTRL] admission high episode 55 at total=181.6%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=181.6% (rule >175.0))
-[CTRL] admission high episode 56 at total=226.0%
-[CTRL] slot_A dynamic throttle to 10% at total=142.4%
-[CTRL] admission high episode 57 at total=196.9%
-[CTRL] admission high episode 58 at total=207.1%
-[CTRL] slot_A dynamic throttle removed at total=19.4%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=28.8% (rule <100.0))
-[CTRL] admission high episode 59 at total=170.7%
-[CTRL] admission high episode 60 at total=175.2%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=175.2% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=175.2%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.8% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=86.0%
-[CTRL] admission high episode 61 at total=197.7%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=197.7% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=29.0% (rule <100.0))
-[CTRL] admission high episode 62 at total=171.1%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=177.6% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=177.6%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=76.3% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=38.7%
-[CTRL] admission high episode 63 at total=170.8%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=179.8% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=226.0%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=95.7% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=96.0%
-[CTRL] admission high episode 64 at total=179.9%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=179.9% (rule >175.0))
-[CTRL] admission high episode 65 at total=229.9%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.2% (rule <100.0))
-[CTRL] admission high episode 66 at total=188.9%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=188.9% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=188.9%
-[CTRL] admission high episode 67 at total=210.0%
-[CTRL] admission high episode 68 at total=189.7%
-[CTRL] slot_A dynamic throttle removed at total=38.6%
-[CTRL] admission high episode 69 at total=236.0%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.1% (rule <100.0))
-[CTRL] admission high episode 70 at total=170.1%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=179.0% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=179.0%
-[CTRL] admission high episode 71 at total=215.6%
-[CTRL] admission high episode 72 at total=200.3%
-[CTRL] slot_A dynamic throttle removed at total=57.9%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=28.9% (rule <100.0))
-[CTRL] admission high episode 73 at total=190.3%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=190.3% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=190.3%
-[CTRL] admission high episode 74 at total=213.4%
-[CTRL] admission high episode 75 at total=178.9%
-[CTRL] slot_A dynamic throttle removed at total=67.5%
-[CTRL] admission high episode 76 at total=207.2%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.6% (rule <100.0))
-[CTRL] admission high episode 77 at total=172.1%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=180.9% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=180.9%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.5% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=115.0%
-[CTRL] admission high episode 78 at total=182.1%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=182.1% (rule >175.0))
-[CTRL] admission high episode 79 at total=188.2%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=65.7% (rule <100.0))
-[CTRL] admission high episode 80 at total=181.3%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=199.2% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=199.2%
-[CTRL] admission high episode 81 at total=189.7%
-[CTRL] slot_A dynamic throttle removed at total=38.8%
-[CTRL] slot_A dynamic throttle to 10% at total=143.7%
-[CTRL] slot_A dynamic throttle removed at total=76.7%
-[CTRL] admission high episode 82 at total=190.2%
-[CTRL] admission high episode 83 at total=210.8%
-[CTRL] slot_A dynamic throttle to 10% at total=217.1%
-[CTRL] admission high episode 84 at total=216.8%
-[CTRL] slot_A dynamic throttle removed at total=9.7%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=67.2% (rule <100.0))
-[CTRL] admission high episode 85 at total=187.5%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=187.5% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=187.5%
-[CTRL] admission high episode 86 at total=170.7%
-[CTRL] slot_A dynamic throttle removed at total=77.1%
-[CTRL] admission high episode 87 at total=216.6%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.4% (rule <100.0))
-[CTRL] admission high episode 88 at total=190.5%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=190.5% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=190.5%
-[CTRL] slot_A: canneal done
-[CTRL] admission high episode 89 at total=221.3%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=87.7% (rule <100.0))
-[CTRL] admission high episode 90 at total=184.1%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=184.1% (rule >175.0))
-[CTRL] admission high episode 91 at total=183.8%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.8% (rule <100.0))
-[CTRL] slot_A: started streamcluster on cores=[3] threads=1
-[CTRL] admission high episode 92 at total=181.9%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=181.9% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=181.9%
-[CTRL] admission high episode 93 at total=199.9%
-[CTRL] admission high episode 94 at total=171.1%
-[CTRL] slot_A dynamic throttle removed at total=67.5%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=47.4% (rule <100.0))
-[CTRL] admission high episode 95 at total=179.3%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=179.3% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=179.3%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.5% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=38.3%
-[CTRL] admission high episode 96 at total=186.5%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=186.5% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=207.0%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.8% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=95.0%
-[CTRL] admission high episode 97 at total=178.0%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.0% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=151.6%
-[CTRL] admission high episode 98 at total=170.2%
-[CTRL] slot_A dynamic throttle removed at total=48.3%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.2% (rule <100.0))
-[CTRL] admission high episode 99 at total=178.9%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.9% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=178.9%
-[CTRL] admission high episode 100 at total=216.6%
-[CTRL] slot_A dynamic throttle removed at total=77.1%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.2% (rule <100.0))
-[CTRL] admission high episode 101 at total=171.4%
-[CTRL] slot_B: freqmine done
-[CTRL] slot_B: started vips on cores=[2] threads=2
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=177.9% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=180.0%
-[CTRL] admission high episode 102 at total=171.8%
-[CTRL] slot_A dynamic throttle removed at total=77.0%
-[CTRL] admission high episode 103 at total=171.3%
-[CTRL] slot_A dynamic throttle to 10% at total=161.8%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=86.6% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=57.7%
-[CTRL] admission high episode 104 at total=184.6%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=184.6% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.6% (rule <100.0))
-[CTRL] admission high episode 105 at total=172.0%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=176.9% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=176.9%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=67.5% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=67.3%
-[CTRL] admission high episode 106 at total=170.7%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=177.8% (rule >175.0))
-[CTRL] admission high episode 107 at total=171.3%
-[CTRL] slot_A dynamic throttle to 10% at total=151.5%
-[CTRL] admission high episode 108 at total=200.3%
-[CTRL] admission high episode 109 at total=218.4%
-[CTRL] slot_A dynamic throttle removed at total=57.8%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=86.0% (rule <100.0))
-[CTRL] admission high episode 110 at total=188.7%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=188.7% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=188.7%
-[CTRL] admission high episode 111 at total=172.1%
-[CTRL] slot_A dynamic throttle removed at total=77.2%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=47.9% (rule <100.0))
-[CTRL] admission high episode 112 at total=180.4%
-[CTRL] admission high episode 113 at total=181.3%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=181.3% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=86.0% (rule <100.0))
-[CTRL] admission high episode 114 at total=173.9%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=195.9% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=195.9%
-[CTRL] admission high episode 115 at total=180.2%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.8% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=76.7%
-[CTRL] admission high episode 116 at total=179.2%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=179.2% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=38.7% (rule <100.0))
-[CTRL] admission high episode 117 at total=179.7%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=179.7% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=179.7%
-[CTRL] admission high episode 118 at total=181.2%
-[CTRL] admission high episode 119 at total=235.8%
-[CTRL] slot_A dynamic throttle removed at total=48.3%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=47.9% (rule <100.0))
-[CTRL] admission high episode 120 at total=180.5%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=180.5% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=96.0% (rule <100.0))
-[CTRL] admission high episode 121 at total=178.7%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.7% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=178.7%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=38.7% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=58.0%
-[CTRL] admission high episode 122 at total=179.1%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=179.1% (rule >175.0))
-[CTRL] admission high episode 123 at total=189.9%
-[CTRL] slot_A dynamic throttle to 10% at total=198.2%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=38.8% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=29.0%
-[CTRL] slot_B: vips done
-[CTRL] admission high episode 124 at total=173.4%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=200.5% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=200.5%
-[CTRL] admission high episode 125 at total=241.1%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.9% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=19.6%
-[CTRL] admission high episode 126 at total=191.9%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=191.9% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=67.9% (rule <100.0))
-[CTRL] admission high episode 127 at total=173.1%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=182.9% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=182.9%
-[CTRL] admission high episode 128 at total=174.1%
-[CTRL] slot_A dynamic throttle removed at total=68.5%
-[CTRL] admission high episode 129 at total=182.6%
-[CTRL] slot_A dynamic throttle to 10% at total=136.0%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=77.7% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=136.0%
-[CTRL] admission high episode 130 at total=172.7%
-[CTRL] admission high episode 131 at total=171.3%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=183.0% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=183.0%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=29.4% (rule <100.0))
-[CTRL] admission high episode 132 at total=183.5%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=193.9% (rule >175.0))
-[CTRL] admission high episode 133 at total=192.6%
-[CTRL] slot_A dynamic throttle removed at total=77.8%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=68.1% (rule <100.0))
-[CTRL] admission high episode 134 at total=191.8%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=191.8% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=136.1%
-[CTRL] admission high episode 135 at total=174.4%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=68.5% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=29.4%
-[CTRL] admission high episode 136 at total=184.0%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=184.0% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.7% (rule <100.0))
-[CTRL] admission high episode 137 at total=173.6%
-[CTRL] admission high episode 138 at total=192.5%
+[CTRL] admission high episode 19 at total=171.6%
+[CTRL] admission high episode 20 at total=181.2%
+[CTRL] slot_A dynamic throttle removed at total=67.4%
+[CTRL] admission high episode 21 at total=205.3%
+[CTRL] slot_A dynamic throttle to 10% at total=208.2%
+[CTRL] admission high episode 22 at total=199.0%
+[CTRL] slot_A dynamic throttle removed at total=29.1%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=76.6% (rule <100.0))
+[CTRL] admission high episode 23 at total=192.5%
 [CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=192.5% (rule >175.0))
 [CTRL] slot_A dynamic throttle to 10% at total=192.5%
-[CTRL] admission high episode 139 at total=193.9%
-[CTRL] admission high episode 140 at total=193.6%
-[CTRL] admission high episode 141 at total=174.1%
-[CTRL] slot_A dynamic throttle removed at total=68.5%
-[CTRL] admission high episode 142 at total=183.9%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.9% (rule <100.0))
-[CTRL] admission high episode 143 at total=182.9%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=182.9% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=182.9%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=58.6% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=87.7%
-[CTRL] admission high episode 144 at total=183.0%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=183.0% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=183.0%
-[CTRL] admission high episode 145 at total=212.7%
-[CTRL] admission high episode 146 at total=174.5%
-[CTRL] slot_A dynamic throttle removed at total=67.9%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=87.7% (rule <100.0))
-[CTRL] admission high episode 147 at total=193.2%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=193.2% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=87.6% (rule <100.0))
-[CTRL] admission high episode 148 at total=183.1%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=183.1% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=183.1%
-[CTRL] slot_A dynamic throttle removed at total=39.1%
+[CTRL] admission high episode 24 at total=180.8%
+[CTRL] slot_A dynamic throttle removed at total=58.1%
+[CTRL] admission high episode 25 at total=209.1%
+[CTRL] slot_A dynamic throttle to 10% at total=199.3%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.8% (rule <100.0))
+[CTRL] admission high episode 26 at total=171.9%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=181.0% (rule >175.0))
+[CTRL] admission high episode 27 at total=172.9%
+[CTRL] slot_A dynamic throttle removed at total=76.8%
+[CTRL] admission high episode 28 at total=188.8%
+[CTRL] slot_A dynamic throttle to 10% at total=143.9%
+[CTRL] admission high episode 29 at total=171.9%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.4% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=57.9%
+[CTRL] admission high episode 30 at total=171.1%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=198.0% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=142.4%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=38.6% (rule <100.0))
+[CTRL] admission high episode 31 at total=171.8%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=180.1% (rule >175.0))
+[CTRL] slot_A dynamic throttle removed at total=57.6%
+[CTRL] admission high episode 32 at total=181.4%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=67.1% (rule <100.0))
+[CTRL] admission high episode 33 at total=182.8%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=182.8% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=182.8%
+[CTRL] admission high episode 34 at total=171.4%
+[CTRL] slot_A dynamic throttle removed at total=29.1%
+[CTRL] admission high episode 35 at total=170.2%
+[CTRL] admission high episode 36 at total=181.2%
+[CTRL] slot_A dynamic throttle to 10% at total=162.9%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=67.2% (rule <100.0))
+[CTRL] admission high episode 37 at total=171.7%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=180.5% (rule >175.0))
+[CTRL] admission high episode 38 at total=217.5%
+[CTRL] slot_A dynamic throttle removed at total=67.2%
+[CTRL] admission high episode 39 at total=208.3%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.4% (rule <100.0))
+[CTRL] admission high episode 40 at total=178.3%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.3% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=178.3%
+[CTRL] admission high episode 41 at total=197.7%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=96.4% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=86.7%
+[CTRL] admission high episode 42 at total=178.3%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.3% (rule >175.0))
+[CTRL] admission high episode 43 at total=188.7%
+[CTRL] slot_A dynamic throttle to 10% at total=179.2%
+[CTRL] admission high episode 44 at total=188.5%
+[CTRL] admission high episode 45 at total=179.9%
+[CTRL] admission high episode 46 at total=180.3%
+[CTRL] slot_A dynamic throttle removed at total=28.8%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=66.3% (rule <100.0))
+[CTRL] admission high episode 47 at total=190.6%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=190.6% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=190.6%
+[CTRL] admission high episode 48 at total=171.2%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.2% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=66.8%
+[CTRL] admission high episode 49 at total=172.7%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=176.3% (rule >175.0))
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=95.9% (rule <100.0))
+[CTRL] slot_A: barnes done
+[CTRL] slot_A: started radix on cores=[3] threads=1
+[CTRL] admission high episode 50 at total=172.7%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=177.1% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=177.1%
+[CTRL] admission high episode 51 at total=180.0%
+[CTRL] slot_A dynamic throttle removed at total=77.2%
+[CTRL] admission high episode 52 at total=190.8%
+[CTRL] admission high episode 53 at total=188.2%
+[CTRL] slot_A dynamic throttle to 10% at total=189.1%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=58.0% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=29.0%
+[CTRL] admission high episode 54 at total=173.2%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.2% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=197.2%
+[CTRL] admission high episode 55 at total=190.5%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=67.3% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=67.2%
+[CTRL] admission high episode 56 at total=178.5%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.5% (rule >175.0))
+[CTRL] admission high episode 57 at total=179.1%
+[CTRL] slot_A dynamic throttle to 10% at total=142.1%
+[CTRL] admission high episode 58 at total=196.2%
+[CTRL] admission high episode 59 at total=191.4%
+[CTRL] slot_A dynamic throttle removed at total=77.4%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.0% (rule <100.0))
+[CTRL] slot_A: radix done
+[CTRL] slot_A: started canneal on cores=[3] threads=1
+[CTRL] admission high episode 60 at total=186.7%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=186.7% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=186.7%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.6% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=57.7%
+[CTRL] admission high episode 61 at total=175.6%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=175.6% (rule >175.0))
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=94.7% (rule <100.0))
+[CTRL] admission high episode 62 at total=178.3%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.3% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=178.3%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.0% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=142.8%
+[CTRL] admission high episode 63 at total=184.9%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=184.9% (rule >175.0))
+[CTRL] admission high episode 64 at total=170.8%
+[CTRL] slot_A dynamic throttle to 10% at total=152.4%
+[CTRL] admission high episode 65 at total=181.7%
+[CTRL] admission high episode 66 at total=228.4%
+[CTRL] slot_A dynamic throttle removed at total=19.4%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=47.7% (rule <100.0))
+[CTRL] admission high episode 67 at total=172.2%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=180.9% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=152.1%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=67.5% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=38.5%
+[CTRL] admission high episode 68 at total=177.4%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=177.4% (rule >175.0))
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=67.6% (rule <100.0))
+[CTRL] admission high episode 69 at total=182.5%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=182.5% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=182.5%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=29.1% (rule <100.0))
+[CTRL] admission high episode 70 at total=170.2%
+[CTRL] slot_A dynamic throttle removed at total=143.7%
+[CTRL] admission high episode 71 at total=189.2%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=189.2% (rule >175.0))
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=86.3% (rule <100.0))
+[CTRL] admission high episode 72 at total=170.6%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=175.2% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=175.2%
+[CTRL] slot_A dynamic throttle removed at total=38.7%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=86.4% (rule <100.0))
+[CTRL] admission high episode 73 at total=170.5%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=181.4% (rule >175.0))
+[CTRL] admission high episode 74 at total=219.5%
+[CTRL] slot_A dynamic throttle to 10% at total=218.3%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=47.9% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=38.2%
+[CTRL] admission high episode 75 at total=173.3%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=197.1% (rule >175.0))
+[CTRL] admission high episode 76 at total=195.2%
+[CTRL] admission high episode 77 at total=188.5%
+[CTRL] slot_A dynamic throttle to 10% at total=189.9%
+[CTRL] admission high episode 78 at total=206.6%
+[CTRL] slot_A dynamic throttle removed at total=76.9%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=38.6% (rule <100.0))
+[CTRL] admission high episode 79 at total=177.2%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=177.2% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=199.8%
+[CTRL] admission high episode 80 at total=208.4%
+[CTRL] admission high episode 81 at total=171.0%
+[CTRL] admission high episode 82 at total=190.2%
+[CTRL] slot_A dynamic throttle removed at total=67.6%
+[CTRL] admission high episode 83 at total=170.5%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.3% (rule <100.0))
+[CTRL] admission high episode 84 at total=188.4%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=188.4% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=188.4%
+[CTRL] admission high episode 85 at total=191.4%
+[CTRL] admission high episode 86 at total=189.4%
+[CTRL] slot_A dynamic throttle removed at total=67.7%
+[CTRL] admission high episode 87 at total=217.8%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=67.4% (rule <100.0))
+[CTRL] admission high episode 88 at total=173.3%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=190.3% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=190.3%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=76.1% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=115.3%
+[CTRL] admission high episode 89 at total=188.0%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=188.0% (rule >175.0))
+[CTRL] admission high episode 90 at total=182.0%
+[CTRL] slot_A dynamic throttle to 10% at total=153.1%
+[CTRL] admission high episode 91 at total=236.1%
+[CTRL] admission high episode 92 at total=171.4%
+[CTRL] slot_A dynamic throttle removed at total=77.1%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=94.8% (rule <100.0))
+[CTRL] admission high episode 93 at total=172.4%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.5% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=178.5%
+[CTRL] admission high episode 94 at total=177.7%
+[CTRL] admission high episode 95 at total=199.3%
+[CTRL] slot_A dynamic throttle removed at total=29.0%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=67.4% (rule <100.0))
+[CTRL] admission high episode 96 at total=185.3%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=185.3% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=185.3%
+[CTRL] admission high episode 97 at total=170.4%
+[CTRL] slot_A dynamic throttle removed at total=76.7%
+[CTRL] admission high episode 98 at total=210.1%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.9% (rule <100.0))
+[CTRL] admission high episode 99 at total=179.0%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=179.0% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=179.0%
+[CTRL] admission high episode 100 at total=189.9%
+[CTRL] slot_A dynamic throttle removed at total=48.4%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=38.4% (rule <100.0))
+[CTRL] admission high episode 101 at total=187.0%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=188.5% (rule >175.0))
+[CTRL] admission high episode 102 at total=216.4%
+[CTRL] slot_A dynamic throttle to 10% at total=161.9%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=67.6% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=95.9%
+[CTRL] admission high episode 103 at total=182.3%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=182.3% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=143.6%
+[CTRL] admission high episode 104 at total=208.8%
+[CTRL] admission high episode 105 at total=170.4%
+[CTRL] admission high episode 106 at total=190.3%
+[CTRL] slot_A dynamic throttle removed at total=77.4%
+[CTRL] slot_A: canneal done
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=29.4% (rule <100.0))
+[CTRL] slot_A: started streamcluster on cores=[3] threads=1
+[CTRL] admission high episode 107 at total=176.0%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=176.0% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=176.0%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=86.3% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=29.0%
+[CTRL] admission high episode 108 at total=199.0%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=199.0% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=199.1%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=86.2% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=86.2%
+[CTRL] admission high episode 109 at total=171.5%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=179.7% (rule >175.0))
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=76.4% (rule <100.0))
+[CTRL] admission high episode 110 at total=171.2%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=190.7% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=190.7%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=38.6% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=115.1%
+[CTRL] admission high episode 111 at total=189.0%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=189.0% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=189.0%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=76.8% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=104.2%
+[CTRL] admission high episode 112 at total=179.4%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=179.4% (rule >175.0))
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.0% (rule <100.0))
+[CTRL] admission high episode 113 at total=172.4%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.5% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=178.5%
+[CTRL] admission high episode 114 at total=170.8%
+[CTRL] slot_A dynamic throttle removed at total=77.2%
+[CTRL] admission high episode 115 at total=171.4%
+[CTRL] slot_A dynamic throttle to 10% at total=160.7%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=77.0% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=57.2%
+[CTRL] admission high episode 116 at total=178.3%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.3% (rule >175.0))
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.4% (rule <100.0))
+[CTRL] admission high episode 117 at total=176.6%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=176.6% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=176.6%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=66.8% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=77.1%
+[CTRL] admission high episode 118 at total=188.8%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=188.8% (rule >175.0))
+[CTRL] admission high episode 119 at total=170.9%
+[CTRL] slot_A dynamic throttle to 10% at total=153.0%
+[CTRL] admission high episode 120 at total=198.9%
+[CTRL] admission high episode 121 at total=200.9%
+[CTRL] slot_A dynamic throttle removed at total=67.6%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=86.2% (rule <100.0))
+[CTRL] admission high episode 122 at total=174.2%
+[CTRL] pause slot_B failed: 500 Server Error for http+docker://localhost/v1.54/containers/68f95321f3cd46561f36fbb3dca8561aa82613467e77172a3899bb8c5ceb1341/pause: Internal Server Error ("cannot pause container 68f95321f3cd46561f36fbb3dca8561aa82613467e77172a3899bb8c5ceb1341: OCI runtime pause failed: container not running")
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=182.4% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=182.4%
+[CTRL] slot_B: freqmine done
+[CTRL] slot_A dynamic throttle removed at total=58.6%
 [CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=58.5% (rule <100.0))
-[CTRL] admission high episode 149 at total=192.6%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=192.6% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=192.6%
+[CTRL] slot_B: started vips on cores=[2] threads=2
+[CTRL] admission high episode 123 at total=171.2%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=181.6% (rule >175.0))
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=67.1% (rule <100.0))
+[CTRL] admission high episode 124 at total=185.5%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=185.5% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=185.5%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.2% (rule <100.0))
+[CTRL] admission high episode 125 at total=170.5%
+[CTRL] slot_A dynamic throttle removed at total=76.7%
+[CTRL] admission high episode 126 at total=178.3%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.3% (rule >175.0))
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=38.6% (rule <100.0))
+[CTRL] admission high episode 127 at total=184.8%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=184.8% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=184.8%
+[CTRL] admission high episode 128 at total=188.8%
+[CTRL] admission high episode 129 at total=219.3%
+[CTRL] slot_A dynamic throttle removed at total=57.6%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=47.8% (rule <100.0))
+[CTRL] admission high episode 130 at total=173.7%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=176.8% (rule >175.0))
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=38.6% (rule <100.0))
+[CTRL] admission high episode 131 at total=186.2%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=186.2% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=186.2%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.2% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=57.5%
+[CTRL] admission high episode 132 at total=178.7%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.7% (rule >175.0))
+[CTRL] admission high episode 133 at total=203.5%
+[CTRL] slot_A dynamic throttle to 10% at total=214.2%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=29.0% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=29.0%
+[CTRL] admission high episode 134 at total=181.5%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=181.5% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=181.5%
+[CTRL] admission high episode 135 at total=227.8%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=19.2% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=9.7%
+[CTRL] admission high episode 136 at total=195.8%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=195.8% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=159.4%
+[CTRL] admission high episode 137 at total=172.2%
+[CTRL] admission high episode 138 at total=188.6%
+[CTRL] slot_A dynamic throttle removed at total=77.2%
+[CTRL] admission high episode 139 at total=187.6%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=57.1% (rule <100.0))
+[CTRL] slot_B: vips done
+[CTRL] admission high episode 140 at total=173.2%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=183.5% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=183.5%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=58.5% (rule <100.0))
+[CTRL] admission high episode 141 at total=174.0%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=183.4% (rule >175.0))
+[CTRL] slot_A dynamic throttle removed at total=58.6%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.9% (rule <100.0))
+[CTRL] admission high episode 142 at total=192.2%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=200.9% (rule >175.0))
+[CTRL] admission high episode 143 at total=213.5%
+[CTRL] slot_A dynamic throttle to 10% at total=145.9%
+[CTRL] slot_A dynamic throttle removed at total=58.8%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=68.4% (rule <100.0))
+[CTRL] admission high episode 144 at total=191.7%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=191.7% (rule >175.0))
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=86.9% (rule <100.0))
+[CTRL] admission high episode 145 at total=174.1%
+[CTRL] admission high episode 146 at total=173.8%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=193.2% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=193.2%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.8% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=107.0%
+[CTRL] admission high episode 147 at total=193.4%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=193.4% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=193.4%
+[CTRL] admission high episode 148 at total=202.3%
+[CTRL] admission high episode 149 at total=175.4%
+[CTRL] admission high episode 150 at total=183.8%
+[CTRL] slot_A dynamic throttle removed at total=68.4%
+[CTRL] admission high episode 151 at total=183.1%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=39.1% (rule <100.0))
+[CTRL] admission high episode 152 at total=192.8%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=192.8% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=192.8%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.9% (rule <100.0))
+[CTRL] slot_A dynamic throttle removed at total=77.9%
+[CTRL] admission high episode 153 at total=174.1%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=183.7% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=183.7%
+[CTRL] admission high episode 154 at total=203.0%
+[CTRL] slot_A dynamic throttle removed at total=78.0%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=77.5% (rule <100.0))
+[CTRL] admission high episode 155 at total=183.5%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=183.5% (rule >175.0))
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=87.8% (rule <100.0))
+[CTRL] admission high episode 156 at total=183.7%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=183.7% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=183.7%
+[CTRL] slot_A dynamic throttle removed at total=68.5%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.7% (rule <100.0))
+[CTRL] admission high episode 157 at total=183.2%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=183.2% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=183.2%
 [CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=39.2% (rule <100.0))
-[CTRL] slot_A dynamic throttle removed at total=106.8%
-[CTRL] admission high episode 150 at total=173.9%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=183.1% (rule >175.0))
-[CTRL] admission high episode 151 at total=174.1%
-[CTRL] slot_A dynamic throttle to 10% at total=174.1%
-[CTRL] admission high episode 152 at total=184.6%
-[CTRL] slot_A dynamic throttle removed at total=29.4%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=19.5% (rule <100.0))
-[CTRL] admission high episode 153 at total=191.6%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=191.6% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=191.6%
+[CTRL] slot_A dynamic throttle removed at total=116.9%
+[CTRL] admission high episode 158 at total=192.6%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=192.6% (rule >175.0))
+[CTRL] admission high episode 159 at total=247.9%
+[CTRL] slot_A dynamic throttle to 10% at total=247.9%
+[CTRL] admission high episode 160 at total=183.6%
+[CTRL] slot_A dynamic throttle removed at total=48.8%
+[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=87.8% (rule <100.0))
+[CTRL] admission high episode 161 at total=174.0%
+[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=201.8% (rule >175.0))
+[CTRL] slot_A dynamic throttle to 10% at total=201.8%
 [CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=0.0% (rule <100.0))
 [CTRL] slot_A dynamic throttle removed at total=0.0%
 [CTRL] slot_A: streamcluster done
 [CTRL] All batch jobs done.
 [CTRL] memcached restored to [0, 1, 2, 3]
-[CTRL] log -> log20260516_093730.txt
-[CTRL] cpu log -> /home/ubuntu/cpu_log_20260516_093730.csv
+[CTRL] log -> log20260516_153231.txt
+[CTRL] cpu log -> /home/ubuntu/cpu_log_20260516_153231.csv
