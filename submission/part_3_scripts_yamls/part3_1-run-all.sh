@@ -9,7 +9,7 @@ AGENT_A_IP="10.0.16.6"
 AGENT_B_IP="10.0.16.4"
 MCPERF_DIR="~/memcache-perf-dynamic"
 OUTPUT_DIR="results"
-SCHEDULER="scripts/part3-scheduler.py"
+SCHEDULER="scripts/part3_1-scheduler.py"
 
 mkdir -p "${OUTPUT_DIR}"
 
