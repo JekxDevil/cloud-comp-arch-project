@@ -3,6 +3,7 @@
 
 # Part 4 run number (default 1), override with: make start-part-4-3 RUN=2
 RUN ?= 1
+PART4_Q3_DURATION ?= 1020
 
 # Part 4 Q1: T/C config sweep (5K–125K QPS), results in data/p4/q1/
 # Optional flags: make start-part-4-1 ARGS="--skip-q1d"
@@ -11,7 +12,7 @@ start-part-4-1:
 
 # Part 4 Q3: 15-second QPS intervals, seed=2345, results in data/p4/q3/
 start-part-4-3:
-	bash scripts/part-4.sh --run-number $(RUN) --data-dir data/p4/q3
+	bash scripts/part-4.sh --run-number $(RUN) --duration $(PART4_Q3_DURATION) --data-dir data/p4/q3
 
 # Part 4 Q4: 5-second QPS intervals, seed=2345, results in data/p4/q4/
 start-part-4-4:
@@ -199,6 +200,14 @@ start-search/bounded_total_gate_slotb_finish:
 start-search/bounded_total_gate_slotb_max:
 	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy bounded_total_gate_slotb_max \
 		--data-dir data/p4/search/bounded_total_gate_slotb_max
+
+start-search/stress_adaptive:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy stress_adaptive \
+		--data-dir data/p4/search/stress_adaptive
+
+start-search/core_fast:
+	bash scripts/part-4.sh --run-number 1 --duration $(SEARCH_DURATION) --policy core_fast \
+		--data-dir data/p4/search/core_fast
 
 delete-cluster:
 	kops delete cluster --yes part$(PART).k8s.local

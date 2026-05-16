@@ -109,6 +109,8 @@ log "Setting up memcache-server ($MEMCACHE_EXT) ..."
 for F in \
   "$PROJECT_ROOT/scripts/part-4-setup-memcache-server.sh" \
   "$PROJECT_ROOT/scripts/controller.py" \
+  "$PROJECT_ROOT/scripts/controller_policies.py" \
+  "$PROJECT_ROOT/scripts/controller_core_fast.py" \
   "$PROJECT_ROOT/scheduler_logger.py"; do
   scp $SSH_OPTS "$F" "ubuntu@$MEMCACHE_EXT:~"
 done
