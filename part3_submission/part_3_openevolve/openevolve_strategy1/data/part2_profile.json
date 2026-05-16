@@ -1,0 +1,103 @@
+{
+  "_comment": "Per-job profile + interference model. solo_runtime_1t_s recalibrated 2026-05-10 from measured per-job runtimes (results.json from hand-crafted Part 3.1 run). Backed-out formula: solo_1t = measured × scaling[deployed_threads]. p95 baseline calibrated from mcperf_1.txt. Memcached additive impacts are still rough estimates — they need a co-located mcperf run to refine. 8t scaling values for canneal/streamcluster should be re-derived from measured 8t runtimes if available.",
+
+  "memcached": {
+    "cores_required": [0, 1],
+    "node": "node-a",
+    "p95_baseline_us": 350,
+    "p95_slo_us": 1000,
+    "qps": 30000
+  },
+
+  "nodes": {
+    "node-a": {"vcpus": 8, "memory_gb": 32, "hosts_memcached": true,  "usable_cores": [2, 3, 4, 5, 6, 7]},
+    "node-b": {"vcpus": 4, "memory_gb": 3.6, "hosts_memcached": false, "usable_cores": [0, 1, 2, 3]}
+  },
+
+  "jobs": {
+    "freqmine": {
+      "_calibration": "measured 87s at 6t on node-a (sharing with memcached + bs/vips). solo_1t = 87 * 4.6 = 400.2",
+      "solo_runtime_1t_s": 400.2,
+      "thread_scaling": {"1": 1.0, "2": 1.85, "4": 3.4, "6": 4.6, "8": 5.5},
+      "cache_pressure": "med",
+      "mem_bw": "low",
+      "memcached_p95_add_us": 180,
+      "requires_node_a": false
+    },
+    "blackscholes": {
+      "_calibration": "measured 39s at 4t on node-a (parallel with vips). solo_1t = 39 * 3.7 = 144.3",
+      "solo_runtime_1t_s": 144.3,
+      "thread_scaling": {"1": 1.0, "2": 1.95, "4": 3.7, "6": 5.2, "8": 6.5},
+      "cache_pressure": "low",
+      "mem_bw": "low",
+      "memcached_p95_add_us": 50,
+      "requires_node_a": false
+    },
+    "vips": {
+      "_calibration": "measured 50s at 2t on node-a (parallel with bs). solo_1t = 50 * 1.9 = 95.0",
+      "solo_runtime_1t_s": 95.0,
+      "thread_scaling": {"1": 1.0, "2": 1.9,  "4": 3.5, "6": 4.8, "8": 5.8},
+      "cache_pressure": "low",
+      "mem_bw": "low",
+      "memcached_p95_add_us": 60,
+      "requires_node_a": false
+    },
+    "barnes": {
+      "_calibration": "measured 42s at 4t on node-a (after bs+vips, solo on node-a apart from memcached). solo_1t = 42 * 3.4 = 142.8",
+      "solo_runtime_1t_s": 142.8,
+      "thread_scaling": {"1": 1.0, "2": 1.85, "4": 3.4, "6": 4.5, "8": 5.2},
+      "cache_pressure": "med",
+      "mem_bw": "med",
+      "memcached_p95_add_us": 220,
+      "requires_node_a": false
+    },
+    "canneal": {
+      "_calibration": "measured 81s at 4t on node-b (solo, no memcached neighbor). solo_1t = 81 * 2.9 = 234.9. UPDATE scaling[8] from your measured 8t runtime: scaling[8] = 2.9 * (81 / measured_8t).",
+      "solo_runtime_1t_s": 234.9,
+      "thread_scaling": {"1": 1.0, "2": 1.7,  "4": 2.9, "6": 3.6, "8": 4.0},
+      "cache_pressure": "high",
+      "mem_bw": "high",
+      "memcached_p95_add_us": 700,
+      "requires_node_a": false
+    },
+    "streamcluster": {
+      "_calibration": "measured 149s at 4t on node-b (solo after canneal). solo_1t = 149 * 3.3 = 491.7. UPDATE scaling[8] from your measured 8t runtime: scaling[8] = 3.3 * (149 / measured_8t).",
+      "solo_runtime_1t_s": 491.7,
+      "thread_scaling": {"1": 1.0, "2": 1.85, "4": 3.3, "6": 4.4, "8": 5.0},
+      "cache_pressure": "high",
+      "mem_bw": "high",
+      "memcached_p95_add_us": 850,
+      "requires_node_a": false
+    },
+    "radix": {
+      "_calibration": "measured 12s at 4t on node-a (solo after barnes). solo_1t = 12 * 3.6 = 43.2",
+      "solo_runtime_1t_s": 43.2,
+      "thread_scaling": {"1": 1.0, "2": 1.9,  "4": 3.6, "6": 4.9, "8": 5.7},
+      "cache_pressure": "med",
+      "mem_bw": "high",
+      "memcached_p95_add_us": 450,
+      "requires_node_a": true,
+      "_requires_node_a_reason": "splash2x-radix native input > 3.6 GB; OOMs on node-b"
+    }
+  },
+
+  "interference": {
+    "_comment": "Multiplicative slowdown applied to every job sharing a node. Looked up by the qualitative class pair of the two jobs. Symmetric. Disjoint-cores penalty; oversubscription is handled separately in engine.py.",
+    "pairwise_slowdown": {
+      "low|low":   1.02,
+      "low|med":   1.05,
+      "low|high":  1.10,
+      "med|med":   1.12,
+      "med|high":  1.20,
+      "high|high": 1.40
+    },
+    "memcached_share_node_slowdown": {
+      "_comment": "Extra slowdown on a PARSEC job for sharing node-a with memcached, by job's own mem_bw class.",
+      "low":  1.02,
+      "med":  1.05,
+      "high": 1.12
+    },
+    "oversubscription_slowdown_per_extra_thread": 0.85,
+    "_oversubscription_comment": "Per-thread efficiency drop when total threads on a core-set exceed the core count. extension *= (total_threads / cores) ** (1 - 0.85) clipped at 2.0."
+  }
+}
