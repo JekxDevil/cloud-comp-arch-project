@@ -1,0 +1,152 @@
+2026-05-16T13:55:40.091213 start scheduler
+2026-05-16T13:55:40.150966 start memcached [0,1,2] 3
+2026-05-16T13:55:40.435869 start freqmine [3] 1
+2026-05-16T13:55:40.673886 update_cores memcached [0]
+2026-05-16T13:55:40.962886 start canneal [1] 1
+2026-05-16T13:55:41.308251 start barnes [2] 1
+2026-05-16T13:55:43.464243 update_cores memcached [0,1]
+2026-05-16T13:55:43.513250 pause canneal
+2026-05-16T13:55:47.287232 update_cores memcached [0]
+2026-05-16T13:55:47.314779 unpause canneal
+2026-05-16T13:55:49.592088 update_cores memcached [0,1]
+2026-05-16T13:55:49.635557 pause canneal
+2026-05-16T13:55:51.911907 update_cores memcached [0]
+2026-05-16T13:55:52.741229 unpause canneal
+2026-05-16T13:55:55.028910 update_cores memcached [0,1]
+2026-05-16T13:55:55.084106 pause canneal
+2026-05-16T13:55:55.861072 update_cores memcached [0,1,2]
+2026-05-16T13:55:55.897525 pause barnes
+2026-05-16T13:56:07.679507 update_cores memcached [0,1]
+2026-05-16T13:56:07.701224 unpause barnes
+2026-05-16T13:56:22.481944 update_cores memcached [0]
+2026-05-16T13:56:22.506900 unpause canneal
+2026-05-16T13:56:42.797003 update_cores memcached [0,1]
+2026-05-16T13:56:42.837097 pause canneal
+2026-05-16T13:56:45.108828 update_cores memcached [0]
+2026-05-16T13:56:45.138998 unpause canneal
+2026-05-16T13:56:47.413514 update_cores memcached [0,1]
+2026-05-16T13:56:47.450663 pause canneal
+2026-05-16T13:56:52.724804 update_cores memcached [0]
+2026-05-16T13:56:52.751270 unpause canneal
+2026-05-16T13:57:08.044991 update_cores memcached [0,1]
+2026-05-16T13:57:08.088269 pause canneal
+2026-05-16T13:57:08.863239 update_cores memcached [0,1,2]
+2026-05-16T13:57:08.919708 pause barnes
+2026-05-16T13:57:52.729689 update_cores memcached [0]
+2026-05-16T13:57:52.748238 unpause canneal
+2026-05-16T13:57:52.773421 unpause barnes
+2026-05-16T13:58:23.076016 update_cores memcached [0,1]
+2026-05-16T13:58:23.109816 pause canneal
+2026-05-16T13:58:37.889984 update_cores memcached [0]
+2026-05-16T13:58:37.911258 unpause canneal
+2026-05-16T13:59:23.220130 update_cores memcached [0,1]
+2026-05-16T13:59:23.258407 pause canneal
+2026-05-16T13:59:24.031567 update_cores memcached [0,1,2]
+2026-05-16T13:59:24.055721 pause barnes
+2026-05-16T13:59:37.833778 update_cores memcached [0]
+2026-05-16T13:59:37.848959 unpause canneal
+2026-05-16T13:59:37.866781 unpause barnes
+2026-05-16T13:59:38.729509 end barnes
+2026-05-16T13:59:38.992015 start vips [2] 1
+2026-05-16T14:00:08.172136 update_cores memcached [0,1]
+2026-05-16T14:00:08.245377 pause canneal
+2026-05-16T14:00:22.525140 update_cores memcached [0]
+2026-05-16T14:00:22.543851 unpause canneal
+2026-05-16T14:00:38.330249 update_cores memcached [0,1]
+2026-05-16T14:00:38.373559 pause canneal
+2026-05-16T14:00:40.643962 update_cores memcached [0]
+2026-05-16T14:00:40.671817 unpause canneal
+2026-05-16T14:00:42.951013 update_cores memcached [0,1]
+2026-05-16T14:00:42.989392 pause canneal
+2026-05-16T14:00:45.263624 update_cores memcached [0]
+2026-05-16T14:00:45.294305 unpause canneal
+2026-05-16T14:00:47.572258 update_cores memcached [0,1]
+2026-05-16T14:00:47.619875 pause canneal
+2026-05-16T14:00:52.891977 update_cores memcached [0]
+2026-05-16T14:00:52.913847 unpause canneal
+2026-05-16T14:01:08.207017 update_cores memcached [0,1]
+2026-05-16T14:01:08.256469 pause canneal
+2026-05-16T14:01:09.035636 update_cores memcached [0,1,2]
+2026-05-16T14:01:09.755945 end vips
+2026-05-16T14:01:22.534904 update_cores memcached [0,1]
+2026-05-16T14:01:22.795082 start blackscholes [2] 1
+2026-05-16T14:01:23.306958 update_cores memcached [0]
+2026-05-16T14:01:23.330041 unpause canneal
+2026-05-16T14:01:38.116913 update_cores memcached [0,1]
+2026-05-16T14:01:38.886631 pause canneal
+2026-05-16T14:02:08.179738 update_cores memcached [0]
+2026-05-16T14:02:08.202399 unpause canneal
+2026-05-16T14:02:22.986951 update_cores memcached [0,1]
+2026-05-16T14:02:23.026981 pause canneal
+2026-05-16T14:02:37.807206 update_cores memcached [0]
+2026-05-16T14:02:37.832987 unpause canneal
+2026-05-16T14:02:53.129246 update_cores memcached [0,1]
+2026-05-16T14:02:53.165082 pause canneal
+2026-05-16T14:03:07.948196 update_cores memcached [0]
+2026-05-16T14:03:07.978729 unpause canneal
+2026-05-16T14:03:11.856742 end blackscholes
+2026-05-16T14:03:12.445694 start radix [2] 1
+2026-05-16T14:03:23.262177 update_cores memcached [0,1]
+2026-05-16T14:03:23.292186 pause canneal
+2026-05-16T14:03:25.562645 update_cores memcached [0]
+2026-05-16T14:03:25.588473 unpause canneal
+2026-05-16T14:03:31.877054 update_cores memcached [0,1]
+2026-05-16T14:03:31.927245 pause canneal
+2026-05-16T14:03:34.199780 update_cores memcached [0]
+2026-05-16T14:03:34.225964 unpause canneal
+2026-05-16T14:03:38.933484 end canneal
+2026-05-16T14:03:39.300959 start streamcluster [1] 3
+2026-05-16T14:03:51.519613 update_cores memcached [0,1]
+2026-05-16T14:03:51.553492 pause streamcluster
+2026-05-16T14:03:53.822444 update_cores memcached [0]
+2026-05-16T14:03:53.847607 unpause streamcluster
+2026-05-16T14:03:54.133130 end radix
+2026-05-16T14:03:54.191658 update_cores streamcluster [1,2]
+2026-05-16T14:04:08.131725 update_cores memcached [0,1]
+2026-05-16T14:04:08.183852 update_cores streamcluster [2]
+2026-05-16T14:04:53.005087 update_cores memcached [0,1,2]
+2026-05-16T14:04:53.035947 pause streamcluster
+2026-05-16T14:05:07.823078 update_cores memcached [0,1]
+2026-05-16T14:05:07.850000 unpause streamcluster
+2026-05-16T14:05:23.132504 update_cores memcached [0]
+2026-05-16T14:05:23.162078 update_cores streamcluster [1,2]
+2026-05-16T14:05:46.974179 end freqmine
+2026-05-16T14:05:47.105777 update_cores streamcluster [1,2,3]
+2026-05-16T14:05:52.935865 update_cores memcached [0,1]
+2026-05-16T14:05:52.982294 update_cores streamcluster [2,3]
+2026-05-16T14:06:23.297234 update_cores memcached [0,1,2]
+2026-05-16T14:06:23.341846 update_cores streamcluster [3]
+2026-05-16T14:06:37.624708 update_cores memcached [0,1]
+2026-05-16T14:06:37.653485 update_cores streamcluster [2,3]
+2026-05-16T14:06:45.902934 update_cores memcached [0]
+2026-05-16T14:06:45.928557 update_cores streamcluster [1,2,3]
+2026-05-16T14:06:48.175526 update_cores memcached [0,1]
+2026-05-16T14:06:48.211056 update_cores streamcluster [2,3]
+2026-05-16T14:06:52.484295 update_cores memcached [0]
+2026-05-16T14:06:52.509704 update_cores streamcluster [1,2,3]
+2026-05-16T14:07:07.774104 update_cores memcached [0,1]
+2026-05-16T14:07:07.821842 update_cores streamcluster [2,3]
+2026-05-16T14:07:38.119579 update_cores memcached [0]
+2026-05-16T14:07:38.157726 update_cores streamcluster [1,2,3]
+2026-05-16T14:07:52.909040 update_cores memcached [0,1]
+2026-05-16T14:07:52.954091 update_cores streamcluster [2,3]
+2026-05-16T14:07:55.727658 update_cores memcached [0]
+2026-05-16T14:07:55.757444 update_cores streamcluster [1,2,3]
+2026-05-16T14:07:58.503591 update_cores memcached [0,1]
+2026-05-16T14:07:58.536937 update_cores streamcluster [2,3]
+2026-05-16T14:08:00.811915 update_cores memcached [0]
+2026-05-16T14:08:00.843464 update_cores streamcluster [1,2,3]
+2026-05-16T14:08:03.592969 update_cores memcached [0,1]
+2026-05-16T14:08:03.636205 update_cores streamcluster [2,3]
+2026-05-16T14:08:07.410468 update_cores memcached [0]
+2026-05-16T14:08:07.437079 update_cores streamcluster [1,2,3]
+2026-05-16T14:08:22.701714 update_cores memcached [0,1]
+2026-05-16T14:08:22.741569 update_cores streamcluster [2,3]
+2026-05-16T14:09:23.075560 update_cores memcached [0,1,2]
+2026-05-16T14:09:23.115892 update_cores streamcluster [3]
+2026-05-16T14:09:37.896078 update_cores memcached [0]
+2026-05-16T14:09:37.919262 update_cores streamcluster [1,3]
+2026-05-16T14:09:37.943098 update_cores streamcluster [1,2,3]
+2026-05-16T14:09:43.869712 end streamcluster
+2026-05-16T14:09:43.907735 update_cores memcached [0,1,2,3]
+2026-05-16T14:09:43.907826 end scheduler
