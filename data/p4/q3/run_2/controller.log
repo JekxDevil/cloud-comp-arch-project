@@ -1,65 +1,95 @@
 [CTRL] Process nice priority: 0 -> -20
-[CTRL] Policy: bounded_total_gate_slotb_plus  (TOTAL-CPU mode | hysteresis=5iters | poll=0.1s slot_check=0.1s | init_tier=3 min_tier=2 cap_tier=3 | thresholds={2: [(3, '>', 175.0)], 3: [(2, '<', 100.0)]} | shrink_confirm=20iters | startup_tier_lock=0.0s | slot_A_delay=0.0s slot_B_delay=0.0s | slot_A_guard=0.0/0.0 hold=0.0s confirm=1 | slot_A_dyn_throttle=10% 135.0/85.0 | admission_episode=170.0/130.0 A=2eps/120.0%/10iters/10.0s B=0eps/0.0%/1iters/0.0s)
-[CTRL] memcached PID=179714
-[CTRL] memcached pinned to [0, 1, 2] (tier 3)
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=0.0% (rule <100.0))
-[CTRL] slot_B: started freqmine on cores=[2] threads=2
-[CTRL] admission high episode 1 at total=173.7%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=193.5% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=78.0% (rule <100.0))
-[CTRL] admission high episode 2 at total=182.7%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=182.7% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=87.7% (rule <100.0))
-[CTRL] slot_A: started blackscholes on cores=[3] threads=1
-[CTRL] admission high episode 3 at total=171.8%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.9% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=178.9%
-[CTRL] slot_A dynamic throttle removed at total=38.6%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=29.1% (rule <100.0))
-[CTRL] slot_A: blackscholes done
-[CTRL] slot_A: started barnes on cores=[3] threads=1
-[CTRL] admission high episode 4 at total=172.6%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=180.9% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=180.9%
-[CTRL] slot_A dynamic throttle removed at total=67.6%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=76.7% (rule <100.0))
-[CTRL] slot_A: barnes done
-[CTRL] slot_A: started radix on cores=[3] threads=1
-[CTRL] slot_A: radix done
-[CTRL] slot_A: started canneal on cores=[3] threads=1
-[CTRL] admission high episode 5 at total=178.7%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=178.7% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=178.7%
-[CTRL] slot_A dynamic throttle removed at total=76.5%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=86.2% (rule <100.0))
-[CTRL] slot_B: freqmine done
-[CTRL] slot_B: started streamcluster on cores=[2] threads=2
-[CTRL] admission high episode 6 at total=182.2%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=182.2% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=182.2%
-[CTRL] slot_A dynamic throttle removed at total=76.9%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=67.0% (rule <100.0))
-[CTRL] admission high episode 7 at total=171.9%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=175.7% (rule >175.0))
-[CTRL] slot_A dynamic throttle to 10% at total=175.7%
-[CTRL] slot_A dynamic throttle removed at total=9.7%
-[CTRL] slot_A: canneal done
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=9.8% (rule <100.0))
-[CTRL] slot_A: started vips on cores=[3] threads=1
-[CTRL] slot_A: vips done
-[CTRL] admission high episode 8 at total=174.2%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=183.8% (rule >175.0))
-[CTRL] admission high episode 9 at total=202.2%
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=48.9% (rule <100.0))
-[CTRL] admission high episode 10 at total=183.8%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=183.8% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=68.4% (rule <100.0))
-[CTRL] admission high episode 11 at total=173.7%
-[CTRL] admission high episode 12 at total=183.7%
-[CTRL] tier 2 -> 3  mem=[0, 1, 2]  slot_B=PAUSED (total=183.7% (rule >175.0))
-[CTRL] tier 3 -> 2  mem=[0, 1]  slot_B=[2] (total=58.7% (rule <100.0))
-[CTRL] slot_B: streamcluster done
+[CTRL] stress situation classifier armed, memcached pinned to [0, 1, 2]
+[CTRL] stress situation: active load seen total=11.7%
+[CTRL] stress situation: change 1 at total=65.1%
+[CTRL] stress situation: change 2 at total=108.0%
+[CTRL] stress situation=False reason=median_change_s=15.02, exec policy=core_fast
+[CTRL] Process nice priority: -20 -> -20
+[CTRL] memcached PID=249778
+[CTRL] Policy: core_fast, inspiration one-job-per-free-core mode
+[CTRL] fast started freqmine on core=3 threads=1
+[CTRL] fast tier -> mem=[0] total=111.4%
+[CTRL] fast started canneal on core=1 threads=1
+[CTRL] fast started barnes on core=2 threads=1
+[CTRL] fast tier -> mem=[0, 1] total=81.9%
+[CTRL] fast tier -> mem=[0] total=93.9%
+[CTRL] fast tier -> mem=[0, 1] total=85.9%
+[CTRL] fast tier -> mem=[0, 1, 2] total=183.8%
+[CTRL] fast tier -> mem=[0, 1] total=141.9%
+[CTRL] fast tier -> mem=[0] total=74.0%
+[CTRL] fast tier -> mem=[0, 1] total=81.9%
+[CTRL] fast tier -> mem=[0] total=93.9%
+[CTRL] fast tier -> mem=[0, 1] total=82.0%
+[CTRL] fast tier -> mem=[0] total=93.9%
+[CTRL] fast tier -> mem=[0, 1] total=87.5%
+[CTRL] fast tier -> mem=[0] total=89.9%
+[CTRL] fast tier -> mem=[0, 1] total=87.9%
+[CTRL] fast tier -> mem=[0, 1, 2] total=195.8%
+[CTRL] fast tier -> mem=[0] total=85.9%
+[CTRL] fast tier -> mem=[0, 1] total=83.9%
+[CTRL] fast tier -> mem=[0] total=77.9%
+[CTRL] fast tier -> mem=[0, 1] total=97.9%
+[CTRL] fast tier -> mem=[0, 1, 2] total=189.9%
+[CTRL] fast tier -> mem=[0, 1] total=127.8%
+[CTRL] fast tier -> mem=[0] total=26.0%
+[CTRL] fast started vips on core=2 threads=1
+[CTRL] fast tier -> mem=[0, 1] total=97.9%
+[CTRL] fast tier -> mem=[0, 1, 2] total=193.8%
+[CTRL] fast tier -> mem=[0, 1] total=169.8%
+[CTRL] fast tier -> mem=[0, 1, 2] total=161.9%
+[CTRL] fast tier -> mem=[0, 1] total=167.9%
+[CTRL] fast tier -> mem=[0] total=58.0%
+[CTRL] fast tier -> mem=[0, 1] total=89.9%
+[CTRL] fast tier -> mem=[0] total=46.0%
+[CTRL] fast tier -> mem=[0, 1] total=99.9%
+[CTRL] fast tier -> mem=[0, 1, 2] total=195.8%
+[CTRL] fast tier -> mem=[0] total=89.9%
+[CTRL] fast started blackscholes on core=2 threads=1
+[CTRL] fast tier -> mem=[0, 1] total=97.9%
+[CTRL] fast tier -> mem=[0] total=89.9%
+[CTRL] fast tier -> mem=[0, 1] total=81.6%
+[CTRL] fast tier -> mem=[0] total=93.9%
+[CTRL] fast tier -> mem=[0, 1] total=81.9%
+[CTRL] fast tier -> mem=[0] total=79.9%
+[CTRL] fast tier -> mem=[0, 1] total=97.9%
+[CTRL] fast tier -> mem=[0] total=76.0%
+[CTRL] fast started radix on core=2 threads=1
+[CTRL] fast tier -> mem=[0, 1] total=84.0%
+[CTRL] fast tier -> mem=[0] total=91.9%
+[CTRL] fast tier -> mem=[0, 1] total=81.9%
+[CTRL] fast tier -> mem=[0] total=93.9%
+[CTRL] fast started streamcluster on core=1 threads=3
+[CTRL] fast expanded streamcluster to [1, 2]
+[CTRL] fast tier -> mem=[0, 1] total=99.9%
+[CTRL] fast tier -> mem=[0, 1, 2] total=179.9%
+[CTRL] fast tier -> mem=[0, 1] total=167.9%
+[CTRL] fast expanded streamcluster to [2, 3]
+[CTRL] fast tier -> mem=[0, 1, 2] total=163.8%
+[CTRL] fast tier -> mem=[0, 1] total=165.9%
+[CTRL] fast expanded streamcluster to [2, 3]
+[CTRL] fast tier -> mem=[0, 1, 2] total=161.9%
+[CTRL] fast tier -> mem=[0, 1] total=169.9%
+[CTRL] fast expanded streamcluster to [2, 3]
+[CTRL] fast tier -> mem=[0, 1, 2] total=163.9%
+[CTRL] fast tier -> mem=[0, 1] total=167.9%
+[CTRL] fast expanded streamcluster to [2, 3]
+[CTRL] fast tier -> mem=[0] total=77.9%
+[CTRL] fast expanded streamcluster to [1, 2, 3]
+[CTRL] fast tier -> mem=[0, 1] total=89.9%
+[CTRL] fast tier -> mem=[0, 1, 2] total=163.9%
+[CTRL] fast tier -> mem=[0, 1] total=167.8%
+[CTRL] fast expanded streamcluster to [2, 3]
+[CTRL] fast tier -> mem=[0] total=61.9%
+[CTRL] fast expanded streamcluster to [1, 2, 3]
+[CTRL] fast tier -> mem=[0, 1] total=99.9%
+[CTRL] fast tier -> mem=[0] total=93.9%
+[CTRL] fast expanded streamcluster to [1, 2, 3]
+[CTRL] fast tier -> mem=[0, 1] total=83.9%
+[CTRL] fast tier -> mem=[0] total=91.9%
+[CTRL] fast expanded streamcluster to [1, 2, 3]
+[CTRL] fast tier -> mem=[0, 1] total=93.9%
+[CTRL] fast tier -> mem=[0, 1, 2] total=179.8%
 [CTRL] All batch jobs done.
 [CTRL] memcached restored to [0, 1, 2, 3]
-[CTRL] log -> log20260516_072341.txt
-[CTRL] cpu log -> /home/ubuntu/cpu_log_20260516_072341.csv
+[CTRL] log -> log20260516_133739.txt
+[CTRL] cpu log -> /home/ubuntu/cpu_log_20260516_133739.csv
