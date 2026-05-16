@@ -27,9 +27,13 @@ SKIP_Q1A=false
 SKIP_Q1D=false
 DATA_ROOT="$PROJECT_ROOT/data/p4/q1"
 
-# mcperf scan: 5K, 15K, ..., 125K  (13 steps x 2 s = 26 s per run)
+# mcperf scan: 5K, 15K, ..., 125K. Each measured window is 2 s,
+# and mcperf adds short gaps between windows.
 SCAN_ARGS="--noload -T 8 -C 8 -D 4 -Q 1000 -c 8 -t 2 --scan 5000:125000:10000"
 N_SCAN_STEPS=13
+PIDSTAT_INTERVAL_S=1
+PIDSTAT_N=65
+PIDSTAT_WAIT_S=30
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -174,11 +178,15 @@ run_scan() {
 start_cpu_monitor() {
   local T="$1" C="$2" N_SAMPLES="$3"
   local REMOTE_FILE="/tmp/cpu_t${T}_c${C}.txt"
+  local REMOTE_PID_FILE="/tmp/cpu_t${T}_c${C}.pid"
   # Background the SSH command locally - the remote command starts pidstat and
   # exits, pidstat keeps running under nohup with stdin closed.
   ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
-    "nohup pidstat -p \$(pgrep memcached | head -1) -u 2 ${N_SAMPLES} \
-     < /dev/null > ${REMOTE_FILE} 2>&1 &" &
+    "MEM_PID=\$(pgrep memcached | head -1); \
+     rm -f ${REMOTE_FILE} ${REMOTE_PID_FILE}; \
+     nohup pidstat -p \$MEM_PID -u ${PIDSTAT_INTERVAL_S} ${N_SAMPLES} \
+       < /dev/null > ${REMOTE_FILE} 2>&1 & \
+     echo \$! > ${REMOTE_PID_FILE}" &
   # Give pidstat ~1 s to start before the mcperf scan begins
   sleep 1
 }
@@ -186,8 +194,16 @@ start_cpu_monitor() {
 collect_cpu_log() {
   local T="$1" C="$2" LOCAL_FILE="$3"
   local REMOTE_FILE="/tmp/cpu_t${T}_c${C}.txt"
-  # Wait a few extra seconds so pidstat finishes its last interval
-  sleep 6
+  local REMOTE_PID_FILE="/tmp/cpu_t${T}_c${C}.pid"
+  # Wait for pidstat to finish so the copied file covers the whole scan.
+  ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
+    "if test -f ${REMOTE_PID_FILE}; then \
+       PID=\$(cat ${REMOTE_PID_FILE}); \
+       for _i in \$(seq 1 ${PIDSTAT_WAIT_S}); do \
+         kill -0 \$PID 2>/dev/null || break; \
+         sleep 1; \
+       done; \
+     fi" >/dev/null 2>&1 || true
   scp $SSH_OPTS "ubuntu@$MEMCACHE_EXT:${REMOTE_FILE}" "$LOCAL_FILE"
   log "  CPU log collected -> $(basename $LOCAL_FILE)"
 }
@@ -222,8 +238,7 @@ if [[ "$SKIP_Q1D" == "false" ]]; then
   log "=== Q1d: T in {1,2,3} x C in {1,2,3}, 1 run + pidstat CPU monitoring ==="
   mkdir -p "$DATA_ROOT/q1d"
 
-  # pidstat samples: one per mcperf step (2 s each) + a small buffer
-  PIDSTAT_N=$(( N_SCAN_STEPS + 4 ))
+  # One second pidstat samples cover the full scan, including mcperf gaps.
 
   for T in 1 2 3; do
     for C in 1 2 3; do
