@@ -41,15 +41,19 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 #   smart_safe   80.00% / 83.33%
 #   bounded         0.00% / 15.00%   <- passed at 15s, failed at 5s, up_dwell too long
 #   bounded_react   0.00% / 18.33%   <- removed up_dwell, but poll=0.25s still too slow
-# Two new candidates with poll=0.05s, implemented through slot_check decoupled to 0.25s:
-#   bounded_fast         : 0%/15%  - good @15s, queue tail at 5s
-#   bounded_preempt      : 25%/20% - WORSE, shrunk during moderate intervals
-# Latest candidate combines both of the new strategy:
-#   bounded_conservative : nice=-20  set globally at controller entry +
-#                          down=8% so tier 3 is held across moderate QPS intervals,
-#                          eliminating the transition-during-peak violations
-#                          that hurt bounded_preempt.
-POLICIES="${POLICIES:-bounded_total_v3}"
+#   bounded_total      0.00% / 11.67%  <- total CPU metric breakthrough
+#   bounded_total_v2   0.00% / 86.67%  <- min_tier=1 flapped badly
+#   bounded_total_v3   0.00% /  8.33%  <- fewer transitions, early high-QPS failures remain
+# Rejected follow-up:
+#   bounded_total_guard 0.00% / 35.00%  <- pause guard regressed
+# Rejected follow-up:
+#   bounded_total_stable: slot_A startup delay plus sustained-low confirmation
+#                         passed 5s, failed 15s by shifting blackscholes noise.
+# Current candidate:
+#   bounded_total_gate_slotb_plus: SLO-safe midpoint after slotb_more and
+#   slotb_max. It completed all 7 jobs in the 1200s Phase-2 run plus cleanup
+#   window while keeping qps_interval=5 SLO below 3%.
+POLICIES="${POLICIES:-bounded_total_gate_slotb_plus}"
 SLO_THRESHOLD="${SLO_THRESHOLD:-3.0}"
 SLO_DURATION="${SLO_DURATION:-300}"
 MAKESPAN_DURATION="${MAKESPAN_DURATION:-1200}"
@@ -81,7 +85,7 @@ run_one() {
 slo_of() {
     # Print SLO % for the given run dir, or 999.99 if mcperf log missing.
     local rundir="$1"
-    python3 "$PROJECT_ROOT/scripts/compute_slo.py" \
+    uv run python "$PROJECT_ROOT/scripts/compute_slo.py" \
         "$rundir/run_1/mcperf_1.txt" 2>/dev/null || echo "999.99"
 }
 

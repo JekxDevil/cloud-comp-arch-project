@@ -1,0 +1,35 @@
+2026-05-14T23:42:50.383791 start scheduler
+2026-05-14T23:42:50.498430 start memcached [0,1,2] 3
+2026-05-14T23:43:18.067082 start blackscholes [3] 1
+2026-05-14T23:43:18.088762 update_cores memcached [0,1]
+2026-05-14T23:43:18.455576 start freqmine [2] 2
+2026-05-14T23:43:18.902074 update_cores memcached [0,1,2]
+2026-05-14T23:43:18.936907 custom freqmine paused
+2026-05-14T23:43:33.010820 custom blackscholes slot_A_guard_pause_total%3D207.5
+2026-05-14T23:43:47.204826 custom blackscholes slot_A_guard_unpause_total%3D144.2
+2026-05-14T23:44:47.136172 custom blackscholes slot_A_guard_pause_total%3D199.0
+2026-05-14T23:45:32.165373 custom blackscholes slot_A_guard_unpause_total%3D76.8
+2026-05-14T23:45:47.292978 update_cores memcached [0,1]
+2026-05-14T23:45:47.308618 custom freqmine unpaused
+2026-05-14T23:45:47.330781 update_cores freqmine [2]
+2026-05-14T23:45:56.742607 end blackscholes
+2026-05-14T23:45:57.151798 start barnes [3] 1
+2026-05-14T23:46:02.165899 update_cores memcached [0,1,2]
+2026-05-14T23:46:02.192014 custom freqmine paused
+2026-05-14T23:46:17.244690 update_cores memcached [0,1]
+2026-05-14T23:46:17.261479 custom freqmine unpaused
+2026-05-14T23:46:17.283598 update_cores freqmine [2]
+2026-05-14T23:46:32.152734 update_cores memcached [0,1,2]
+2026-05-14T23:46:32.173949 custom freqmine paused
+2026-05-14T23:47:02.190029 custom barnes slot_A_guard_pause_total%3D207.8
+2026-05-14T23:47:17.105684 custom barnes slot_A_guard_unpause_total%3D106.3
+2026-05-14T23:47:17.224609 update_cores memcached [0,1]
+2026-05-14T23:47:17.241716 custom freqmine unpaused
+2026-05-14T23:47:17.264800 update_cores freqmine [2]
+2026-05-14T23:47:47.105609 update_cores memcached [0,1,2]
+2026-05-14T23:47:47.144369 custom freqmine paused
+2026-05-14T23:47:47.379776 custom barnes slot_A_guard_pause_total%3D190.3
+2026-05-14T23:48:02.139079 update_cores memcached [0,1]
+2026-05-14T23:48:02.154162 custom freqmine unpaused
+2026-05-14T23:48:02.173899 update_cores freqmine [2]
+2026-05-14T23:48:02.189427 custom barnes slot_A_guard_unpause_total%3D9.7

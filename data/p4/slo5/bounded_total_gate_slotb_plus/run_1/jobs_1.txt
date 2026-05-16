@@ -1,0 +1,55 @@
+2026-05-16T01:35:26.824977 start scheduler
+2026-05-16T01:35:26.860416 start memcached [0,1,2] 3
+2026-05-16T01:35:28.783597 update_cores memcached [0,1]
+2026-05-16T01:35:29.082816 start freqmine [2] 2
+2026-05-16T01:35:50.581695 update_cores memcached [0,1,2]
+2026-05-16T01:35:50.617560 custom freqmine paused
+2026-05-16T01:36:02.082930 update_cores memcached [0,1]
+2026-05-16T01:36:02.101979 custom freqmine unpaused
+2026-05-16T01:36:02.127558 update_cores freqmine [2]
+2026-05-16T01:36:15.199142 update_cores memcached [0,1,2]
+2026-05-16T01:36:15.237964 custom freqmine paused
+2026-05-16T01:36:32.115005 update_cores memcached [0,1]
+2026-05-16T01:36:32.132589 custom freqmine unpaused
+2026-05-16T01:36:32.156756 update_cores freqmine [2]
+2026-05-16T01:36:40.480358 start blackscholes [3] 1
+2026-05-16T01:37:35.819177 update_cores memcached [0,1,2]
+2026-05-16T01:37:35.860404 custom freqmine paused
+2026-05-16T01:37:35.896215 custom blackscholes slot_A_dynamic_throttle_10pct_total%3D175.6
+2026-05-16T01:37:42.104869 update_cores memcached [0,1]
+2026-05-16T01:37:42.122752 custom freqmine unpaused
+2026-05-16T01:37:42.151422 update_cores freqmine [2]
+2026-05-16T01:37:45.938012 custom blackscholes slot_A_dynamic_unthrottle
+2026-05-16T01:38:28.946993 end blackscholes
+2026-05-16T01:38:29.440536 start barnes [3] 1
+2026-05-16T01:38:50.167081 update_cores memcached [0,1,2]
+2026-05-16T01:38:50.208629 custom freqmine paused
+2026-05-16T01:38:50.257227 custom barnes slot_A_dynamic_throttle_10pct_total%3D181.5
+2026-05-16T01:39:00.415755 custom barnes slot_A_dynamic_unthrottle
+2026-05-16T01:39:02.203993 update_cores memcached [0,1]
+2026-05-16T01:39:02.226371 custom freqmine unpaused
+2026-05-16T01:39:02.252567 update_cores freqmine [2]
+2026-05-16T01:39:24.975682 update_cores memcached [0,1,2]
+2026-05-16T01:39:25.019617 custom freqmine paused
+2026-05-16T01:39:25.046562 custom barnes slot_A_dynamic_throttle_10pct_total%3D181.3
+2026-05-16T01:39:32.044697 update_cores memcached [0,1]
+2026-05-16T01:39:32.061972 custom freqmine unpaused
+2026-05-16T01:39:32.084114 update_cores freqmine [2]
+2026-05-16T01:39:35.132428 custom barnes slot_A_dynamic_unthrottle
+2026-05-16T01:40:20.202007 update_cores memcached [0,1,2]
+2026-05-16T01:40:20.250230 custom freqmine paused
+2026-05-16T01:40:20.290454 custom barnes slot_A_dynamic_throttle_10pct_total%3D175.3
+2026-05-16T01:40:27.133929 update_cores memcached [0,1]
+2026-05-16T01:40:27.149732 custom freqmine unpaused
+2026-05-16T01:40:27.170743 update_cores freqmine [2]
+2026-05-16T01:40:30.302052 custom barnes slot_A_dynamic_unthrottle
+2026-05-16T01:41:25.190833 end barnes
+2026-05-16T01:41:25.413566 start radix [3] 1
+2026-05-16T01:41:58.795998 end radix
+2026-05-16T01:41:59.005802 start canneal [3] 1
+2026-05-16T01:42:23.236146 custom canneal terminated_during_shutdown
+2026-05-16T01:42:23.236194 end canneal
+2026-05-16T01:42:33.495563 custom freqmine terminated_during_shutdown
+2026-05-16T01:42:33.495614 end freqmine
+2026-05-16T01:42:33.509207 update_cores memcached [0,1,2,3]
+2026-05-16T01:42:33.509265 end scheduler

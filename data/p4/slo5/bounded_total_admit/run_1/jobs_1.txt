@@ -1,0 +1,7 @@
+2026-05-15T20:05:12.941331 start scheduler
+2026-05-15T20:05:12.981962 start memcached [0,1,2] 3
+2026-05-15T20:05:18.929832 update_cores memcached [0,1]
+2026-05-15T20:05:29.806655 update_cores memcached [0,1,2]
+2026-05-15T20:07:07.065215 start blackscholes [3] 1
+2026-05-15T20:10:25.805824 update_cores memcached [0,1]
+2026-05-15T20:10:26.814395 start freqmine [2] 2
