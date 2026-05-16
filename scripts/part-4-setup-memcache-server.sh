@@ -9,7 +9,7 @@ set -euo pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 
-MEMCACHED_THREADS=3
+MEMCACHED_THREADS="${MEMCACHED_THREADS:-3}"
 MEMCACHED_MEMORY_MB=6144   # ~6 GB; n2d-highmem-4 has 32 GB RAM
 
 # Install memcached

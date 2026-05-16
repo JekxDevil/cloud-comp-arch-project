@@ -1,0 +1,4 @@
+[CTRL] Process nice priority: 0 -> -20
+[CTRL] Policy: mem3_only  (TOTAL-CPU mode | hysteresis=0iters | poll=0.1s slot_check=0.1s | qps_interval=15.0s | init_tier=3 min_tier=3 cap_tier=3 | thresholds={} | shrink_confirm=1iters | slot_A_delay=9999.0s slot_B_delay=9999.0s | slot_A_guard=0.0/0.0 hold=0.0s confirm=1 | slot_A_dyn_throttle=0% 0.0/0.0)
+[CTRL] memcached PID=47940
+[CTRL] memcached pinned to [0, 1, 2] (tier 3)

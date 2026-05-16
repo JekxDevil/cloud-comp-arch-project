@@ -1,0 +1,11 @@
+2026-05-15T21:14:05.739523 start scheduler
+2026-05-15T21:14:05.783945 start memcached [0,1,2] 3
+2026-05-15T21:17:11.515283 start blackscholes [3] 1
+2026-05-15T21:17:12.594513 custom blackscholes slot_A_dynamic_throttle_10pct_total%3D145.8
+2026-05-15T21:17:37.643445 custom blackscholes slot_A_dynamic_unthrottle
+2026-05-15T21:17:47.854817 custom blackscholes slot_A_dynamic_throttle_10pct_total%3D152.9
+2026-05-15T21:18:07.550727 custom blackscholes slot_A_dynamic_unthrottle
+2026-05-15T21:18:37.621333 custom blackscholes slot_A_dynamic_throttle_10pct_total%3D135.8
+2026-05-15T21:19:02.594023 custom blackscholes slot_A_dynamic_unthrottle
+2026-05-15T21:19:18.577621 update_cores memcached [0,1]
+2026-05-15T21:19:18.945665 start freqmine [2] 2
