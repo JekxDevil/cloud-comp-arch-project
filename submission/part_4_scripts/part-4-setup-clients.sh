@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# run this script on both client-agent and client-measure vm for Part 4.
+# it installs the augmented memcache-perf-dynamic fork.
+
+set -euo pipefail
+
+export DEBIAN_FRONTEND=noninteractive
+
+echo "[SETUP] Installing build dependencies ..."
+sudo sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
+sudo apt-get update -qq
+sudo apt-get install -y -o Dpkg::Options::="--force-confold" libevent-dev libzmq3-dev git make g++
+sudo apt-get build-dep -y -o Dpkg::Options::="--force-confold" memcached
+
+echo "[SETUP] Cloning and building memcache-perf-dynamic ..."
+cd ~
+if [ ! -d memcache-perf-dynamic ]; then
+    git clone https://github.com/eth-easl/memcache-perf-dynamic.git
+fi
+cd memcache-perf-dynamic
+make -j"$(nproc)"
+echo "[SETUP] mcperf built at $(pwd)/mcperf"
