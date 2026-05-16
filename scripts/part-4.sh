@@ -38,11 +38,16 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+MEMCACHED_THREADS=3
+if [[ "$POLICY" == "mem4_only" ]]; then
+  MEMCACHED_THREADS=4
+fi
+
 # Build the env-var prefix that sudo will set on the controller process.
 # (sudo recognises VAR=value before the command and applies it to the child.)
-CONTROLLER_ENV=""
+CONTROLLER_ENV="CONTROLLER_MEMCACHED_THREADS=$MEMCACHED_THREADS"
 if [[ -n "$POLICY" ]]; then
-  CONTROLLER_ENV="CONTROLLER_POLICY=$POLICY"
+  CONTROLLER_ENV="$CONTROLLER_ENV CONTROLLER_POLICY=$POLICY"
 fi
 
 log()   { echo "[INFO] $*"; }
@@ -108,7 +113,41 @@ for F in \
   scp $SSH_OPTS "$F" "ubuntu@$MEMCACHE_EXT:~"
 done
 
-ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" "bash part-4-setup-memcache-server.sh"
+ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
+  "MEMCACHED_THREADS=$MEMCACHED_THREADS bash part-4-setup-memcache-server.sh"
+
+# Stop any controller left behind by a previous run.  Older versions saved the
+# PID using pgrep -f, which could capture the launch shell instead of python,
+# leaving the real controller alive to mutate memcached during the next run.
+log "Stopping stale controller processes on memcache-server ..."
+ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" 'bash -s' <<'REMOTE_STOP_CONTROLLERS'
+set +e
+controller_pids() {
+  ps -eo pid=,comm=,args= | awk '$2 == "python3" && $0 ~ /controller.py/ {print $1}'
+}
+PIDS=$(controller_pids)
+if [ -n "$PIDS" ]
+then
+  echo "[INFO] stopping stale controller PID(s): $PIDS"
+  for p in $PIDS
+  do
+    sudo kill -TERM "$p" 2>/dev/null || true
+  done
+  sleep 5
+  PIDS=$(controller_pids)
+  if [ -n "$PIDS" ]
+  then
+    echo "[WARN] stale controller still running, sending SIGKILL: $PIDS"
+    for p in $PIDS
+    do
+      sudo kill -KILL "$p" 2>/dev/null || true
+    done
+  fi
+else
+  echo "[INFO] no stale controller process found"
+fi
+sudo rm -f /home/ubuntu/controller.pid
+REMOTE_STOP_CONTROLLERS
 
 # Remove stale cpu_log and scheduler .txt files from any previous run so that
 # the collection step below cannot accidentally pick up an old file.
@@ -117,11 +156,13 @@ ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" "bash part-4-setup-memcache-server.sh"
 # and a leftover container would cause a 409 Conflict on every retry, silently
 # preventing any batch job from ever starting.
 log "Cleaning up stale log files and docker containers on memcache-server ..."
-ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
-  "sudo rm -f ~/cpu_log_*.csv ~/*.txt 2>/dev/null; \
-   sudo docker rm -f streamcluster freqmine canneal vips blackscholes barnes radix 2>/dev/null; \
-   sudo docker container prune -f 2>/dev/null; \
-   true"
+ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" 'bash -s' <<'REMOTE_CLEAN_MEMCACHE'
+set +e
+sudo rm -f ~/cpu_log_*.csv ~/*.txt 2>/dev/null
+sudo docker rm -f streamcluster freqmine canneal vips blackscholes barnes radix 2>/dev/null
+sudo docker container prune -f 2>/dev/null
+true
+REMOTE_CLEAN_MEMCACHE
 
 # Give Docker group change time to propagate to use 'sg docker'
 log "Pulling Docker images on memcache-server (this takes a few minutes) ..."
@@ -141,22 +182,44 @@ log "Loading memcached data ..."
 ssh $SSH_OPTS "ubuntu@$MEASURE_EXT" \
   "~/memcache-perf-dynamic/mcperf -s $MEMCACHE_INT --loadonly"
 
-# Start mcperf agent
-log "Starting mcperf agent on client-agent ..."
-ssh $SSH_OPTS "ubuntu@$AGENT_EXT" \
-  "nohup ~/memcache-perf-dynamic/mcperf -T 8 -A > mcperf_agent.log 2>&1 &"
+# Start mcperf agent from a clean slate.  A stale agent can look alive while it
+# is still bound to an old coordinator session, so restart it every run.
+log "Restarting mcperf agent on client-agent ..."
+ssh $SSH_OPTS "ubuntu@$AGENT_EXT" 'bash -s' <<'REMOTE_AGENT'
+set +e
+PIDS=$(ps -eo pid=,comm=,args= | awk '$2 == "mcperf" && $0 ~ / -A/ {print $1}')
+for p in $PIDS
+do
+  kill -TERM "$p" 2>/dev/null || true
+done
+sleep 1
+PIDS=$(ps -eo pid=,comm=,args= | awk '$2 == "mcperf" && $0 ~ / -A/ {print $1}')
+for p in $PIDS
+do
+  kill -KILL "$p" 2>/dev/null || true
+done
+nohup ~/memcache-perf-dynamic/mcperf -T 8 -A < /dev/null > ~/mcperf_agent.log 2>&1 &
+sleep 2
+pgrep -x mcperf > /dev/null && echo '[AGENT] started OK' || { echo '[AGENT] FAILED to start'; exit 1; }
+REMOTE_AGENT
 
-# Launch the controller — background the SSH itself locally so we don't block.
-# sudo can keep inherited FDs open, preventing the remote shell from releasing
-# the SSH channel even with nohup+redirect; backgrounding locally sidesteps this.
+# Launch the controller.  `setsid -f` detaches the root controller process so
+# the SSH channel returns immediately.  The PID file is populated by scanning
+# COMMAND=python3 only, avoiding the old pgrep -f launch-shell match.
 RESULTS_DIR="results_run_${RUN_NUMBER}"
 log "Launching controller on memcache-server (policy='${POLICY:-default}') ..."
 ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
   "mkdir -p /home/ubuntu/$RESULTS_DIR && \
-   nohup sudo $CONTROLLER_ENV /home/ubuntu/controller-venv/bin/python3 -u /home/ubuntu/controller.py \
-     < /dev/null > /home/ubuntu/$RESULTS_DIR/controller.log 2>&1 &
-   sleep 1 && pgrep -n -f 'python3.*controller.py' > /home/ubuntu/controller.pid || true
-   echo '[CTRL] Controller started in background'" &
+   sudo rm -f /home/ubuntu/controller.pid && \
+   sudo env $CONTROLLER_ENV setsid -f /home/ubuntu/controller-venv/bin/python3 -u /home/ubuntu/controller.py \
+     < /dev/null > /home/ubuntu/$RESULTS_DIR/controller.log 2>&1
+   sleep 1
+   ps -eo pid=,comm=,args= | awk '\$2 == \"python3\" && \$0 ~ /controller.py/ {print \$1}' | tail -1 > /home/ubuntu/controller.pid
+   if [ -s /home/ubuntu/controller.pid ]; then
+     echo \"[CTRL] Controller started in background PID=\$(cat /home/ubuntu/controller.pid)\"
+   else
+     echo '[CTRL] Controller launch requested but PID file is missing'
+   fi"
 
 # Give controller time to start and pin memcached before load begins
 sleep 10
@@ -180,43 +243,95 @@ log "mcperf trace finished."
 # queue is usually still running when mcperf ends: we send SIGTERM so the
 # controller's signal handler stops containers cleanly and flushes its logs.
 #
-# IMPORTANT: we use the saved PID file (/home/ubuntu/controller.pid) and `kill`
-# rather than `pkill -f`. pkill -f matches against the full command line, which
-# also matches the bash shell that sshd spawned to run this very script: its
-# argv contains the literal string 'python3.*controller.py', so pkill would
-# terminate our own SSH session before cleanup could finish, which would manifest as
-# `make: *** Error 255`).
+# IMPORTANT: use the saved real python PID, then fall back to a process-table
+# scan restricted to COMMAND=python3.  Full command-line pgrep is unsafe here
+# because it can match the SSH launch shell itself.
 log "Waiting for controller to finish ..."
-ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" \
-  "PID_FILE=/home/ubuntu/controller.pid
-   CTRL_PID=\$(cat \$PID_FILE 2>/dev/null || echo '')
-   if [ -z \"\$CTRL_PID\" ]; then
-     echo '[INFO] no controller.pid file - controller might not have started properly'
-     exit 0
-   fi
-   # Wait up to 90s for the controller to exit on its own.
-   for i in \$(seq 1 30); do
-     kill -0 \$CTRL_PID 2>/dev/null || break
-     echo \"  [WAIT] controller (PID=\$CTRL_PID) still running (attempt \$i/30)...\"
-     sleep 3
-   done
-   if kill -0 \$CTRL_PID 2>/dev/null; then
-     echo \"[INFO] controller (PID=\$CTRL_PID) still running after 90s - sending SIGTERM for clean shutdown ...\"
-     sudo kill -TERM \$CTRL_PID 2>/dev/null || true
-     # Allow up to 30s for graceful shutdown (docker.stop has a 10s timeout per container).
-     for i in \$(seq 1 30); do
-       kill -0 \$CTRL_PID 2>/dev/null || break
-       sleep 1
-     done
-     if kill -0 \$CTRL_PID 2>/dev/null; then
-       echo '[WARN] still running after SIGTERM, sending SIGKILL'
-       sudo kill -KILL \$CTRL_PID 2>/dev/null || true
-     else
-       echo '[OK] controller terminated cleanly after SIGTERM'
-     fi
-   else
-     echo '[OK] controller exited on its own'
-   fi"
+ssh $SSH_OPTS "ubuntu@$MEMCACHE_EXT" 'bash -s' <<'REMOTE_WAIT_CONTROLLER'
+set +e
+controller_pids() {
+  ps -eo pid=,comm=,args= | awk '$2 == "python3" && $0 ~ /controller.py/ {print $1}'
+}
+CTRL_PIDS=""
+if [ -s /home/ubuntu/controller.pid ]
+then
+  PID=$(cat /home/ubuntu/controller.pid)
+  if sudo kill -0 "$PID" 2>/dev/null
+  then
+    CTRL_PIDS="$PID"
+  fi
+fi
+if [ -z "$CTRL_PIDS" ]
+then
+  CTRL_PIDS=$(controller_pids)
+fi
+if [ -z "$CTRL_PIDS" ]
+then
+  echo '[INFO] no controller process found'
+  exit 0
+fi
+for i in $(seq 1 30)
+do
+  STILL=""
+  for p in $CTRL_PIDS
+  do
+    if sudo kill -0 "$p" 2>/dev/null
+    then
+      STILL="$STILL $p"
+    fi
+  done
+  if [ -z "$STILL" ]
+  then
+    break
+  fi
+  echo "  [WAIT] controller PID(s)$STILL still running (attempt $i/30)..."
+  sleep 3
+done
+STILL=""
+for p in $CTRL_PIDS
+do
+  if sudo kill -0 "$p" 2>/dev/null
+  then
+    STILL="$STILL $p"
+  fi
+done
+if [ -n "$STILL" ]
+then
+  echo "[INFO] controller PID(s)$STILL still running after 90s, sending SIGTERM for clean shutdown ..."
+  for p in $STILL
+  do
+    sudo kill -TERM "$p" 2>/dev/null || true
+  done
+  for i in $(seq 1 30)
+  do
+    LEFT=""
+    for p in $STILL
+    do
+      if sudo kill -0 "$p" 2>/dev/null
+      then
+        LEFT="$LEFT $p"
+      fi
+    done
+    if [ -z "$LEFT" ]
+    then
+      break
+    fi
+    sleep 1
+  done
+  if [ -n "$LEFT" ]
+  then
+    echo "[WARN] still running after SIGTERM, sending SIGKILL:$LEFT"
+    for p in $LEFT
+    do
+      sudo kill -KILL "$p" 2>/dev/null || true
+    done
+  else
+    echo '[OK] controller terminated cleanly after SIGTERM'
+  fi
+else
+  echo '[OK] controller exited on its own'
+fi
+REMOTE_WAIT_CONTROLLER
 
 # Fix ownership so ubuntu can read root-owned files written by sudo-controller.
 log "Fixing file permissions on memcache-server ..."
