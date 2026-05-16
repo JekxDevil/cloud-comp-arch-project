@@ -3,453 +3,453 @@
 2026-05-16T18:21:55.066631 update_cores memcached [0,1]
 2026-05-16T18:21:55.438127 start freqmine [2] 2
 2026-05-16T18:22:02.258027 update_cores memcached [0,1,2]
-2026-05-16T18:22:02.297414 custom freqmine paused
+2026-05-16T18:22:02.297414 pause freqmine
 2026-05-16T18:22:13.083645 update_cores memcached [0,1]
-2026-05-16T18:22:13.102566 custom freqmine unpaused
+2026-05-16T18:22:13.102566 unpause freqmine
 2026-05-16T18:22:13.127864 update_cores freqmine [2]
 2026-05-16T18:22:21.260592 start blackscholes [3] 1
 2026-05-16T18:22:50.362987 update_cores memcached [0,1,2]
-2026-05-16T18:22:50.393995 custom freqmine paused
+2026-05-16T18:22:50.393995 pause freqmine
 2026-05-16T18:22:50.438424 custom blackscholes slot_A_dynamic_throttle_10pct_total%3D177.8
 2026-05-16T18:22:55.182517 update_cores memcached [0,1]
-2026-05-16T18:22:55.200986 custom freqmine unpaused
+2026-05-16T18:22:55.200986 unpause freqmine
 2026-05-16T18:22:55.226591 update_cores freqmine [2]
 2026-05-16T18:23:00.507868 custom blackscholes slot_A_dynamic_unthrottle
 2026-05-16T18:23:35.188467 update_cores memcached [0,1,2]
-2026-05-16T18:23:35.238938 custom freqmine paused
+2026-05-16T18:23:35.238938 pause freqmine
 2026-05-16T18:23:35.296844 custom blackscholes slot_A_dynamic_throttle_10pct_total%3D189.6
 2026-05-16T18:23:43.194042 update_cores memcached [0,1]
-2026-05-16T18:23:43.211048 custom freqmine unpaused
+2026-05-16T18:23:43.211048 unpause freqmine
 2026-05-16T18:23:43.234448 update_cores freqmine [2]
 2026-05-16T18:23:45.329482 custom blackscholes slot_A_dynamic_unthrottle
 2026-05-16T18:24:21.369495 end blackscholes
 2026-05-16T18:24:24.458534 start barnes [3] 1
 2026-05-16T18:24:29.319402 update_cores memcached [0,1,2]
-2026-05-16T18:24:29.379212 custom freqmine paused
+2026-05-16T18:24:29.379212 pause freqmine
 2026-05-16T18:24:29.426549 custom barnes slot_A_dynamic_throttle_10pct_total%3D182.3
 2026-05-16T18:24:34.153178 update_cores memcached [0,1]
-2026-05-16T18:24:34.167419 custom freqmine unpaused
+2026-05-16T18:24:34.167419 unpause freqmine
 2026-05-16T18:24:34.186711 update_cores freqmine [2]
 2026-05-16T18:24:39.491544 custom barnes slot_A_dynamic_unthrottle
 2026-05-16T18:25:08.458111 update_cores memcached [0,1,2]
-2026-05-16T18:25:08.487023 custom freqmine paused
+2026-05-16T18:25:08.487023 pause freqmine
 2026-05-16T18:25:08.539146 custom barnes slot_A_dynamic_throttle_10pct_total%3D182.1
 2026-05-16T18:25:13.167056 update_cores memcached [0,1]
-2026-05-16T18:25:13.183193 custom freqmine unpaused
+2026-05-16T18:25:13.183193 unpause freqmine
 2026-05-16T18:25:13.206135 update_cores freqmine [2]
 2026-05-16T18:25:18.638506 custom barnes slot_A_dynamic_unthrottle
 2026-05-16T18:25:20.261796 update_cores memcached [0,1,2]
-2026-05-16T18:25:20.307909 custom freqmine paused
+2026-05-16T18:25:20.307909 pause freqmine
 2026-05-16T18:25:25.165990 update_cores memcached [0,1]
-2026-05-16T18:25:25.183930 custom freqmine unpaused
+2026-05-16T18:25:25.183930 unpause freqmine
 2026-05-16T18:25:25.211108 update_cores freqmine [2]
 2026-05-16T18:25:44.207117 update_cores memcached [0,1,2]
-2026-05-16T18:25:44.241997 custom freqmine paused
+2026-05-16T18:25:44.241997 pause freqmine
 2026-05-16T18:25:44.288657 custom barnes slot_A_dynamic_throttle_10pct_total%3D188.9
 2026-05-16T18:25:49.141666 update_cores memcached [0,1]
-2026-05-16T18:25:49.158731 custom freqmine unpaused
+2026-05-16T18:25:49.158731 unpause freqmine
 2026-05-16T18:25:49.182400 update_cores freqmine [2]
 2026-05-16T18:25:54.313393 custom barnes slot_A_dynamic_unthrottle
 2026-05-16T18:26:11.234276 update_cores memcached [0,1,2]
-2026-05-16T18:26:11.303941 custom freqmine paused
+2026-05-16T18:26:11.303941 pause freqmine
 2026-05-16T18:26:11.343914 custom barnes slot_A_dynamic_throttle_10pct_total%3D180.4
 2026-05-16T18:26:16.189893 update_cores memcached [0,1]
-2026-05-16T18:26:16.206531 custom freqmine unpaused
+2026-05-16T18:26:16.206531 unpause freqmine
 2026-05-16T18:26:16.230245 update_cores freqmine [2]
 2026-05-16T18:26:21.373414 custom barnes slot_A_dynamic_unthrottle
 2026-05-16T18:26:41.327441 update_cores memcached [0,1,2]
-2026-05-16T18:26:41.365168 custom freqmine paused
+2026-05-16T18:26:41.365168 pause freqmine
 2026-05-16T18:26:41.407745 custom barnes slot_A_dynamic_throttle_10pct_total%3D188.0
 2026-05-16T18:26:46.160557 update_cores memcached [0,1]
-2026-05-16T18:26:46.177824 custom freqmine unpaused
+2026-05-16T18:26:46.177824 unpause freqmine
 2026-05-16T18:26:46.200260 update_cores freqmine [2]
 2026-05-16T18:26:51.456647 custom barnes slot_A_dynamic_unthrottle
 2026-05-16T18:27:08.757407 update_cores memcached [0,1,2]
-2026-05-16T18:27:08.807694 custom freqmine paused
+2026-05-16T18:27:08.807694 pause freqmine
 2026-05-16T18:27:08.859118 custom barnes slot_A_dynamic_throttle_10pct_total%3D185.9
 2026-05-16T18:27:13.180617 update_cores memcached [0,1]
-2026-05-16T18:27:13.197938 custom freqmine unpaused
+2026-05-16T18:27:13.197938 unpause freqmine
 2026-05-16T18:27:13.220207 update_cores freqmine [2]
 2026-05-16T18:27:18.927226 custom barnes slot_A_dynamic_unthrottle
 2026-05-16T18:27:32.245965 update_cores memcached [0,1,2]
-2026-05-16T18:27:32.297719 custom freqmine paused
+2026-05-16T18:27:32.297719 pause freqmine
 2026-05-16T18:27:32.356046 custom barnes slot_A_dynamic_throttle_10pct_total%3D180.9
 2026-05-16T18:27:47.161201 custom barnes slot_A_dynamic_unthrottle
 2026-05-16T18:27:49.145604 update_cores memcached [0,1]
-2026-05-16T18:27:49.164671 custom freqmine unpaused
+2026-05-16T18:27:49.164671 unpause freqmine
 2026-05-16T18:27:49.187149 update_cores freqmine [2]
 2026-05-16T18:28:11.226962 update_cores memcached [0,1,2]
-2026-05-16T18:28:11.263973 custom freqmine paused
+2026-05-16T18:28:11.263973 pause freqmine
 2026-05-16T18:28:11.329217 custom barnes slot_A_dynamic_throttle_10pct_total%3D188.5
 2026-05-16T18:28:16.166837 update_cores memcached [0,1]
-2026-05-16T18:28:16.181594 custom freqmine unpaused
+2026-05-16T18:28:16.181594 unpause freqmine
 2026-05-16T18:28:16.203188 update_cores freqmine [2]
 2026-05-16T18:28:21.384149 custom barnes slot_A_dynamic_unthrottle
 2026-05-16T18:28:30.985384 update_cores memcached [0,1,2]
-2026-05-16T18:28:31.011942 custom freqmine paused
+2026-05-16T18:28:31.011942 pause freqmine
 2026-05-16T18:28:31.465757 custom barnes slot_A_dynamic_throttle_10pct_total%3D199.7
 2026-05-16T18:28:47.128841 custom barnes slot_A_dynamic_unthrottle
 2026-05-16T18:28:49.117863 update_cores memcached [0,1]
-2026-05-16T18:28:49.136118 custom freqmine unpaused
+2026-05-16T18:28:49.136118 unpause freqmine
 2026-05-16T18:28:49.160755 update_cores freqmine [2]
 2026-05-16T18:28:52.378244 end barnes
 2026-05-16T18:28:53.880154 update_cores memcached [0,1,2]
-2026-05-16T18:28:53.918098 custom freqmine paused
+2026-05-16T18:28:53.918098 pause freqmine
 2026-05-16T18:29:07.122728 update_cores memcached [0,1]
-2026-05-16T18:29:07.140376 custom freqmine unpaused
+2026-05-16T18:29:07.140376 unpause freqmine
 2026-05-16T18:29:07.162243 update_cores freqmine [2]
 2026-05-16T18:29:12.757448 start radix [3] 1
 2026-05-16T18:29:47.228848 update_cores memcached [0,1,2]
-2026-05-16T18:29:47.273629 custom freqmine paused
+2026-05-16T18:29:47.273629 pause freqmine
 2026-05-16T18:29:47.317792 custom radix slot_A_dynamic_throttle_10pct_total%3D198.5
 2026-05-16T18:29:59.103206 custom radix slot_A_dynamic_unthrottle
 2026-05-16T18:30:01.093333 update_cores memcached [0,1]
-2026-05-16T18:30:01.110183 custom freqmine unpaused
+2026-05-16T18:30:01.110183 unpause freqmine
 2026-05-16T18:30:01.133928 update_cores freqmine [2]
 2026-05-16T18:30:04.841750 end radix
 2026-05-16T18:30:05.109458 start canneal [3] 1
 2026-05-16T18:30:05.254553 update_cores memcached [0,1,2]
-2026-05-16T18:30:05.293088 custom freqmine paused
+2026-05-16T18:30:05.293088 pause freqmine
 2026-05-16T18:30:05.335821 custom canneal slot_A_dynamic_throttle_10pct_total%3D178.0
 2026-05-16T18:30:10.178693 update_cores memcached [0,1]
-2026-05-16T18:30:10.194836 custom freqmine unpaused
+2026-05-16T18:30:10.194836 unpause freqmine
 2026-05-16T18:30:10.218961 update_cores freqmine [2]
 2026-05-16T18:30:14.242326 update_cores memcached [0,1,2]
-2026-05-16T18:30:14.279613 custom freqmine paused
+2026-05-16T18:30:14.279613 pause freqmine
 2026-05-16T18:30:17.155123 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:30:19.144749 update_cores memcached [0,1]
-2026-05-16T18:30:19.163633 custom freqmine unpaused
+2026-05-16T18:30:19.163633 unpause freqmine
 2026-05-16T18:30:19.198908 update_cores freqmine [2]
 2026-05-16T18:30:33.692964 update_cores memcached [0,1,2]
-2026-05-16T18:30:33.754914 custom freqmine paused
+2026-05-16T18:30:33.754914 pause freqmine
 2026-05-16T18:30:33.791053 custom canneal slot_A_dynamic_throttle_10pct_total%3D181.0
 2026-05-16T18:30:53.182803 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:30:55.174104 update_cores memcached [0,1]
-2026-05-16T18:30:55.193584 custom freqmine unpaused
+2026-05-16T18:30:55.193584 unpause freqmine
 2026-05-16T18:30:55.217908 update_cores freqmine [2]
 2026-05-16T18:31:17.645878 update_cores memcached [0,1,2]
-2026-05-16T18:31:17.674985 custom freqmine paused
+2026-05-16T18:31:17.674985 pause freqmine
 2026-05-16T18:31:17.710956 custom canneal slot_A_dynamic_throttle_10pct_total%3D176.8
 2026-05-16T18:31:22.133061 update_cores memcached [0,1]
-2026-05-16T18:31:22.153176 custom freqmine unpaused
+2026-05-16T18:31:22.153176 unpause freqmine
 2026-05-16T18:31:22.176285 update_cores freqmine [2]
 2026-05-16T18:31:26.176468 update_cores memcached [0,1,2]
-2026-05-16T18:31:26.218506 custom freqmine paused
+2026-05-16T18:31:26.218506 pause freqmine
 2026-05-16T18:31:35.234905 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:31:37.127527 update_cores memcached [0,1]
-2026-05-16T18:31:37.147832 custom freqmine unpaused
+2026-05-16T18:31:37.147832 unpause freqmine
 2026-05-16T18:31:37.171905 update_cores freqmine [2]
 2026-05-16T18:31:38.257131 update_cores memcached [0,1,2]
-2026-05-16T18:31:38.296669 custom freqmine paused
+2026-05-16T18:31:38.296669 pause freqmine
 2026-05-16T18:31:45.282654 custom canneal slot_A_dynamic_throttle_10pct_total%3D169.5
 2026-05-16T18:31:52.116015 update_cores memcached [0,1]
-2026-05-16T18:31:52.131580 custom freqmine unpaused
+2026-05-16T18:31:52.131580 unpause freqmine
 2026-05-16T18:31:52.152480 update_cores freqmine [2]
 2026-05-16T18:31:55.297936 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:32:08.214654 update_cores memcached [0,1,2]
-2026-05-16T18:32:08.266924 custom freqmine paused
+2026-05-16T18:32:08.266924 pause freqmine
 2026-05-16T18:32:08.309386 custom canneal slot_A_dynamic_throttle_10pct_total%3D180.5
 2026-05-16T18:32:20.219103 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:32:22.214115 update_cores memcached [0,1]
-2026-05-16T18:32:22.236004 custom freqmine unpaused
+2026-05-16T18:32:22.236004 unpause freqmine
 2026-05-16T18:32:22.262395 update_cores freqmine [2]
 2026-05-16T18:32:32.264156 update_cores memcached [0,1,2]
-2026-05-16T18:32:32.296795 custom freqmine paused
+2026-05-16T18:32:32.296795 pause freqmine
 2026-05-16T18:32:32.338438 custom canneal slot_A_dynamic_throttle_10pct_total%3D179.7
 2026-05-16T18:32:37.190412 update_cores memcached [0,1]
-2026-05-16T18:32:37.207497 custom freqmine unpaused
+2026-05-16T18:32:37.207497 unpause freqmine
 2026-05-16T18:32:37.232211 update_cores freqmine [2]
 2026-05-16T18:32:42.439584 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:32:50.866687 update_cores memcached [0,1,2]
-2026-05-16T18:32:50.894912 custom freqmine paused
+2026-05-16T18:32:50.894912 pause freqmine
 2026-05-16T18:32:52.519786 custom canneal slot_A_dynamic_throttle_10pct_total%3D206.7
 2026-05-16T18:33:14.101577 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:33:16.083409 update_cores memcached [0,1]
-2026-05-16T18:33:16.104968 custom freqmine unpaused
+2026-05-16T18:33:16.104968 unpause freqmine
 2026-05-16T18:33:16.126380 update_cores freqmine [2]
 2026-05-16T18:33:32.229096 update_cores memcached [0,1,2]
-2026-05-16T18:33:32.276607 custom freqmine paused
+2026-05-16T18:33:32.276607 pause freqmine
 2026-05-16T18:33:32.318071 custom canneal slot_A_dynamic_throttle_10pct_total%3D184.8
 2026-05-16T18:33:42.324703 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:33:43.170228 update_cores memcached [0,1]
-2026-05-16T18:33:43.186461 custom freqmine unpaused
+2026-05-16T18:33:43.186461 unpause freqmine
 2026-05-16T18:33:43.207696 update_cores freqmine [2]
 2026-05-16T18:33:59.428928 update_cores memcached [0,1,2]
-2026-05-16T18:33:59.468737 custom freqmine paused
+2026-05-16T18:33:59.468737 pause freqmine
 2026-05-16T18:33:59.509943 custom canneal slot_A_dynamic_throttle_10pct_total%3D189.8
 2026-05-16T18:34:04.143837 update_cores memcached [0,1]
-2026-05-16T18:34:04.160221 custom freqmine unpaused
+2026-05-16T18:34:04.160221 unpause freqmine
 2026-05-16T18:34:04.184757 update_cores freqmine [2]
 2026-05-16T18:34:09.541698 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:34:32.308877 update_cores memcached [0,1,2]
-2026-05-16T18:34:32.355949 custom freqmine paused
+2026-05-16T18:34:32.355949 pause freqmine
 2026-05-16T18:34:32.388489 custom canneal slot_A_dynamic_throttle_10pct_total%3D180.4
 2026-05-16T18:34:37.138729 update_cores memcached [0,1]
-2026-05-16T18:34:37.155441 custom freqmine unpaused
+2026-05-16T18:34:37.155441 unpause freqmine
 2026-05-16T18:34:37.182162 update_cores freqmine [2]
 2026-05-16T18:34:42.430615 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:34:53.914844 end freqmine
 2026-05-16T18:34:54.330754 start streamcluster [2] 2
 2026-05-16T18:35:04.995429 update_cores memcached [0,1,2]
-2026-05-16T18:35:05.021259 custom streamcluster paused
+2026-05-16T18:35:05.021259 pause streamcluster
 2026-05-16T18:35:05.050652 custom canneal slot_A_dynamic_throttle_10pct_total%3D180.7
 2026-05-16T18:35:07.136833 update_cores memcached [0,1]
-2026-05-16T18:35:07.152063 custom streamcluster unpaused
+2026-05-16T18:35:07.152063 unpause streamcluster
 2026-05-16T18:35:07.173642 update_cores streamcluster [2]
 2026-05-16T18:35:08.239487 update_cores memcached [0,1,2]
-2026-05-16T18:35:08.273426 custom streamcluster paused
+2026-05-16T18:35:08.273426 pause streamcluster
 2026-05-16T18:35:17.183644 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:35:19.176904 update_cores memcached [0,1]
-2026-05-16T18:35:19.194986 custom streamcluster unpaused
+2026-05-16T18:35:19.194986 unpause streamcluster
 2026-05-16T18:35:19.222747 update_cores streamcluster [2]
 2026-05-16T18:35:30.875342 update_cores memcached [0,1,2]
-2026-05-16T18:35:30.924821 custom streamcluster paused
+2026-05-16T18:35:30.924821 pause streamcluster
 2026-05-16T18:35:30.961368 custom canneal slot_A_dynamic_throttle_10pct_total%3D176.1
 2026-05-16T18:35:34.107234 update_cores memcached [0,1]
-2026-05-16T18:35:34.123836 custom streamcluster unpaused
+2026-05-16T18:35:34.123836 unpause streamcluster
 2026-05-16T18:35:34.148251 update_cores streamcluster [2]
 2026-05-16T18:35:41.037162 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:35:41.496015 update_cores memcached [0,1,2]
-2026-05-16T18:35:41.542367 custom streamcluster paused
+2026-05-16T18:35:41.542367 pause streamcluster
 2026-05-16T18:35:51.074076 custom canneal slot_A_dynamic_throttle_10pct_total%3D143.8
 2026-05-16T18:35:55.171836 update_cores memcached [0,1]
-2026-05-16T18:35:55.191132 custom streamcluster unpaused
+2026-05-16T18:35:55.191132 unpause streamcluster
 2026-05-16T18:35:55.216625 update_cores streamcluster [2]
 2026-05-16T18:35:59.215615 update_cores memcached [0,1,2]
-2026-05-16T18:35:59.256408 custom streamcluster paused
+2026-05-16T18:35:59.256408 pause streamcluster
 2026-05-16T18:36:06.972565 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:36:17.023730 custom canneal slot_A_dynamic_throttle_10pct_total%3D197.7
 2026-05-16T18:36:22.155069 update_cores memcached [0,1]
-2026-05-16T18:36:22.171146 custom streamcluster unpaused
+2026-05-16T18:36:22.171146 unpause streamcluster
 2026-05-16T18:36:22.192143 update_cores streamcluster [2]
 2026-05-16T18:36:23.782973 update_cores memcached [0,1,2]
-2026-05-16T18:36:23.808507 custom streamcluster paused
+2026-05-16T18:36:23.808507 pause streamcluster
 2026-05-16T18:36:27.511884 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:36:28.155252 update_cores memcached [0,1]
-2026-05-16T18:36:28.175935 custom streamcluster unpaused
+2026-05-16T18:36:28.175935 unpause streamcluster
 2026-05-16T18:36:28.209909 update_cores streamcluster [2]
 2026-05-16T18:36:56.765341 update_cores memcached [0,1,2]
-2026-05-16T18:36:56.790863 custom streamcluster paused
+2026-05-16T18:36:56.790863 pause streamcluster
 2026-05-16T18:36:56.839048 custom canneal slot_A_dynamic_throttle_10pct_total%3D178.5
 2026-05-16T18:37:01.161074 update_cores memcached [0,1]
-2026-05-16T18:37:01.177928 custom streamcluster unpaused
+2026-05-16T18:37:01.177928 unpause streamcluster
 2026-05-16T18:37:01.208235 update_cores streamcluster [2]
 2026-05-16T18:37:06.879001 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:37:17.241034 update_cores memcached [0,1,2]
-2026-05-16T18:37:17.269250 custom streamcluster paused
+2026-05-16T18:37:17.269250 pause streamcluster
 2026-05-16T18:37:17.312966 custom canneal slot_A_dynamic_throttle_10pct_total%3D194.4
 2026-05-16T18:37:25.107172 update_cores memcached [0,1]
-2026-05-16T18:37:25.122893 custom streamcluster unpaused
+2026-05-16T18:37:25.122893 unpause streamcluster
 2026-05-16T18:37:25.144079 update_cores streamcluster [2]
 2026-05-16T18:37:27.374228 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:37:44.554375 update_cores memcached [0,1,2]
-2026-05-16T18:37:44.594560 custom streamcluster paused
+2026-05-16T18:37:44.594560 pause streamcluster
 2026-05-16T18:37:44.627679 custom canneal slot_A_dynamic_throttle_10pct_total%3D179.4
 2026-05-16T18:37:52.113018 update_cores memcached [0,1]
-2026-05-16T18:37:52.129111 custom streamcluster unpaused
+2026-05-16T18:37:52.129111 unpause streamcluster
 2026-05-16T18:37:52.151408 update_cores streamcluster [2]
 2026-05-16T18:37:54.674189 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:38:05.207335 update_cores memcached [0,1,2]
-2026-05-16T18:38:05.257425 custom streamcluster paused
+2026-05-16T18:38:05.257425 pause streamcluster
 2026-05-16T18:38:05.297611 custom canneal slot_A_dynamic_throttle_10pct_total%3D178.4
 2026-05-16T18:38:10.144379 update_cores memcached [0,1]
-2026-05-16T18:38:10.163325 custom streamcluster unpaused
+2026-05-16T18:38:10.163325 unpause streamcluster
 2026-05-16T18:38:10.192031 update_cores streamcluster [2]
 2026-05-16T18:38:11.159501 update_cores memcached [0,1,2]
-2026-05-16T18:38:11.199671 custom streamcluster paused
+2026-05-16T18:38:11.199671 pause streamcluster
 2026-05-16T18:38:15.325436 custom canneal slot_A_dynamic_unthrottle
 2026-05-16T18:38:16.174756 update_cores memcached [0,1]
-2026-05-16T18:38:16.195861 custom streamcluster unpaused
+2026-05-16T18:38:16.195861 unpause streamcluster
 2026-05-16T18:38:16.221863 update_cores streamcluster [2]
 2026-05-16T18:38:18.259203 end canneal
 2026-05-16T18:38:20.203664 update_cores memcached [0,1,2]
-2026-05-16T18:38:20.250977 custom streamcluster paused
+2026-05-16T18:38:20.250977 pause streamcluster
 2026-05-16T18:38:37.095159 update_cores memcached [0,1]
-2026-05-16T18:38:37.110095 custom streamcluster unpaused
+2026-05-16T18:38:37.110095 unpause streamcluster
 2026-05-16T18:38:37.131053 update_cores streamcluster [2]
 2026-05-16T18:38:42.341827 start vips [3] 1
 2026-05-16T18:39:14.322926 update_cores memcached [0,1,2]
-2026-05-16T18:39:14.372161 custom streamcluster paused
+2026-05-16T18:39:14.372161 pause streamcluster
 2026-05-16T18:39:14.417647 custom vips slot_A_dynamic_throttle_10pct_total%3D188.5
 2026-05-16T18:39:19.163830 update_cores memcached [0,1]
-2026-05-16T18:39:19.181785 custom streamcluster unpaused
+2026-05-16T18:39:19.181785 unpause streamcluster
 2026-05-16T18:39:19.207902 update_cores streamcluster [2]
 2026-05-16T18:39:24.458263 custom vips slot_A_dynamic_unthrottle
 2026-05-16T18:39:38.266042 update_cores memcached [0,1,2]
-2026-05-16T18:39:38.293314 custom streamcluster paused
+2026-05-16T18:39:38.293314 pause streamcluster
 2026-05-16T18:39:38.344850 custom vips slot_A_dynamic_throttle_10pct_total%3D200.1
 2026-05-16T18:39:46.125916 update_cores memcached [0,1]
-2026-05-16T18:39:46.141717 custom streamcluster unpaused
+2026-05-16T18:39:46.141717 unpause streamcluster
 2026-05-16T18:39:46.164030 update_cores streamcluster [2]
 2026-05-16T18:39:48.362536 custom vips slot_A_dynamic_unthrottle
 2026-05-16T18:39:51.975914 update_cores memcached [0,1,2]
-2026-05-16T18:39:52.021086 custom streamcluster paused
+2026-05-16T18:39:52.021086 pause streamcluster
 2026-05-16T18:40:00.737609 update_cores memcached [0,1]
-2026-05-16T18:40:01.282022 custom streamcluster unpaused
+2026-05-16T18:40:01.282022 unpause streamcluster
 2026-05-16T18:40:01.309874 update_cores streamcluster [2]
 2026-05-16T18:40:02.608122 update_cores memcached [0,1,2]
-2026-05-16T18:40:02.637716 custom streamcluster paused
+2026-05-16T18:40:02.637716 pause streamcluster
 2026-05-16T18:40:02.684942 custom vips slot_A_dynamic_throttle_10pct_total%3D179.8
 2026-05-16T18:40:10.142729 update_cores memcached [0,1]
-2026-05-16T18:40:10.159977 custom streamcluster unpaused
+2026-05-16T18:40:10.159977 unpause streamcluster
 2026-05-16T18:40:10.181925 update_cores streamcluster [2]
 2026-05-16T18:40:12.719678 custom vips slot_A_dynamic_unthrottle
 2026-05-16T18:40:22.123615 update_cores memcached [0,1,2]
-2026-05-16T18:40:22.148435 custom streamcluster paused
+2026-05-16T18:40:22.148435 pause streamcluster
 2026-05-16T18:40:22.814502 custom vips slot_A_dynamic_throttle_10pct_total%3D161.3
 2026-05-16T18:40:41.221196 custom vips slot_A_dynamic_unthrottle
 2026-05-16T18:40:43.211465 update_cores memcached [0,1]
-2026-05-16T18:40:43.229122 custom streamcluster unpaused
+2026-05-16T18:40:43.229122 unpause streamcluster
 2026-05-16T18:40:43.256211 update_cores streamcluster [2]
 2026-05-16T18:40:50.326927 update_cores memcached [0,1,2]
-2026-05-16T18:40:50.354893 custom streamcluster paused
+2026-05-16T18:40:50.354893 pause streamcluster
 2026-05-16T18:40:51.238838 custom vips slot_A_dynamic_throttle_10pct_total%3D188.6
 2026-05-16T18:41:08.133024 custom vips slot_A_dynamic_unthrottle
 2026-05-16T18:41:10.128750 update_cores memcached [0,1]
-2026-05-16T18:41:10.149786 custom streamcluster unpaused
+2026-05-16T18:41:10.149786 unpause streamcluster
 2026-05-16T18:41:10.176586 update_cores streamcluster [2]
 2026-05-16T18:41:14.177939 update_cores memcached [0,1,2]
-2026-05-16T18:41:14.218992 custom streamcluster paused
+2026-05-16T18:41:14.218992 pause streamcluster
 2026-05-16T18:41:20.157892 custom vips slot_A_dynamic_throttle_10pct_total%3D189.5
 2026-05-16T18:41:25.112437 update_cores memcached [0,1]
-2026-05-16T18:41:25.130735 custom streamcluster unpaused
+2026-05-16T18:41:25.130735 unpause streamcluster
 2026-05-16T18:41:25.156659 update_cores streamcluster [2]
 2026-05-16T18:41:26.231191 update_cores memcached [0,1,2]
-2026-05-16T18:41:26.256889 custom streamcluster paused
+2026-05-16T18:41:26.256889 pause streamcluster
 2026-05-16T18:41:38.219641 custom vips slot_A_dynamic_unthrottle
 2026-05-16T18:41:40.100984 update_cores memcached [0,1]
-2026-05-16T18:41:40.118200 custom streamcluster unpaused
+2026-05-16T18:41:40.118200 unpause streamcluster
 2026-05-16T18:41:40.144892 update_cores streamcluster [2]
 2026-05-16T18:41:42.117383 end vips
 2026-05-16T18:41:44.146552 update_cores memcached [0,1,2]
-2026-05-16T18:41:44.172403 custom streamcluster paused
+2026-05-16T18:41:44.172403 pause streamcluster
 2026-05-16T18:41:52.137344 update_cores memcached [0,1]
-2026-05-16T18:41:52.155314 custom streamcluster unpaused
+2026-05-16T18:41:52.155314 unpause streamcluster
 2026-05-16T18:41:52.180376 update_cores streamcluster [2]
 2026-05-16T18:42:05.244969 update_cores memcached [0,1,2]
-2026-05-16T18:42:05.271818 custom streamcluster paused
+2026-05-16T18:42:05.271818 pause streamcluster
 2026-05-16T18:42:10.141492 update_cores memcached [0,1]
-2026-05-16T18:42:10.158834 custom streamcluster unpaused
+2026-05-16T18:42:10.158834 unpause streamcluster
 2026-05-16T18:42:10.183310 update_cores streamcluster [2]
 2026-05-16T18:42:11.246353 update_cores memcached [0,1,2]
-2026-05-16T18:42:11.272449 custom streamcluster paused
+2026-05-16T18:42:11.272449 pause streamcluster
 2026-05-16T18:42:37.067051 update_cores memcached [0,1]
-2026-05-16T18:42:37.085877 custom streamcluster unpaused
+2026-05-16T18:42:37.085877 unpause streamcluster
 2026-05-16T18:42:37.110732 update_cores streamcluster [2]
 2026-05-16T18:43:02.238812 update_cores memcached [0,1,2]
-2026-05-16T18:43:02.279345 custom streamcluster paused
+2026-05-16T18:43:02.279345 pause streamcluster
 2026-05-16T18:43:07.152921 update_cores memcached [0,1]
-2026-05-16T18:43:07.170275 custom streamcluster unpaused
+2026-05-16T18:43:07.170275 unpause streamcluster
 2026-05-16T18:43:07.194736 update_cores streamcluster [2]
 2026-05-16T18:43:08.252635 update_cores memcached [0,1,2]
-2026-05-16T18:43:08.279256 custom streamcluster paused
+2026-05-16T18:43:08.279256 pause streamcluster
 2026-05-16T18:43:13.150928 update_cores memcached [0,1]
-2026-05-16T18:43:13.169520 custom streamcluster unpaused
+2026-05-16T18:43:13.169520 unpause streamcluster
 2026-05-16T18:43:13.193372 update_cores streamcluster [2]
 2026-05-16T18:43:17.763223 update_cores memcached [0,1,2]
-2026-05-16T18:43:17.797533 custom streamcluster paused
+2026-05-16T18:43:17.797533 pause streamcluster
 2026-05-16T18:43:22.138018 update_cores memcached [0,1]
-2026-05-16T18:43:22.154748 custom streamcluster unpaused
+2026-05-16T18:43:22.154748 unpause streamcluster
 2026-05-16T18:43:22.177864 update_cores streamcluster [2]
 2026-05-16T18:43:23.335909 update_cores memcached [0,1,2]
-2026-05-16T18:43:23.361702 custom streamcluster paused
+2026-05-16T18:43:23.361702 pause streamcluster
 2026-05-16T18:43:37.136803 update_cores memcached [0,1]
-2026-05-16T18:43:37.154446 custom streamcluster unpaused
+2026-05-16T18:43:37.154446 unpause streamcluster
 2026-05-16T18:43:37.180231 update_cores streamcluster [2]
 2026-05-16T18:43:44.799601 update_cores memcached [0,1,2]
-2026-05-16T18:43:44.825372 custom streamcluster paused
+2026-05-16T18:43:44.825372 pause streamcluster
 2026-05-16T18:43:49.054659 update_cores memcached [0,1]
-2026-05-16T18:43:49.069774 custom streamcluster unpaused
+2026-05-16T18:43:49.069774 unpause streamcluster
 2026-05-16T18:43:49.090555 update_cores streamcluster [2]
 2026-05-16T18:44:06.007555 update_cores memcached [0,1,2]
-2026-05-16T18:44:06.046340 custom streamcluster paused
+2026-05-16T18:44:06.046340 pause streamcluster
 2026-05-16T18:44:10.073054 update_cores memcached [0,1]
-2026-05-16T18:44:10.088933 custom streamcluster unpaused
+2026-05-16T18:44:10.088933 unpause streamcluster
 2026-05-16T18:44:10.111678 update_cores streamcluster [2]
 2026-05-16T18:44:11.163803 update_cores memcached [0,1,2]
-2026-05-16T18:44:11.190480 custom streamcluster paused
+2026-05-16T18:44:11.190480 pause streamcluster
 2026-05-16T18:44:16.157866 update_cores memcached [0,1]
-2026-05-16T18:44:16.175870 custom streamcluster unpaused
+2026-05-16T18:44:16.175870 unpause streamcluster
 2026-05-16T18:44:16.200688 update_cores streamcluster [2]
 2026-05-16T18:44:23.220000 update_cores memcached [0,1,2]
-2026-05-16T18:44:23.261583 custom streamcluster paused
+2026-05-16T18:44:23.261583 pause streamcluster
 2026-05-16T18:44:28.136627 update_cores memcached [0,1]
-2026-05-16T18:44:28.154455 custom streamcluster unpaused
+2026-05-16T18:44:28.154455 unpause streamcluster
 2026-05-16T18:44:28.178666 update_cores streamcluster [2]
 2026-05-16T18:44:35.214394 update_cores memcached [0,1,2]
-2026-05-16T18:44:35.252247 custom streamcluster paused
+2026-05-16T18:44:35.252247 pause streamcluster
 2026-05-16T18:44:40.107987 update_cores memcached [0,1]
-2026-05-16T18:44:40.123592 custom streamcluster unpaused
+2026-05-16T18:44:40.123592 unpause streamcluster
 2026-05-16T18:44:40.144210 update_cores streamcluster [2]
 2026-05-16T18:45:26.956068 update_cores memcached [0,1,2]
-2026-05-16T18:45:26.990173 custom streamcluster paused
+2026-05-16T18:45:26.990173 pause streamcluster
 2026-05-16T18:45:37.110678 update_cores memcached [0,1]
-2026-05-16T18:45:37.126801 custom streamcluster unpaused
+2026-05-16T18:45:37.126801 unpause streamcluster
 2026-05-16T18:45:37.150430 update_cores streamcluster [2]
 2026-05-16T18:45:38.201344 update_cores memcached [0,1,2]
-2026-05-16T18:45:38.239848 custom streamcluster paused
+2026-05-16T18:45:38.239848 pause streamcluster
 2026-05-16T18:45:55.046533 update_cores memcached [0,1]
-2026-05-16T18:45:55.060640 custom streamcluster unpaused
+2026-05-16T18:45:55.060640 unpause streamcluster
 2026-05-16T18:45:55.081018 update_cores streamcluster [2]
 2026-05-16T18:46:14.250518 update_cores memcached [0,1,2]
-2026-05-16T18:46:14.288746 custom streamcluster paused
+2026-05-16T18:46:14.288746 pause streamcluster
 2026-05-16T18:46:28.132588 update_cores memcached [0,1]
-2026-05-16T18:46:28.150370 custom streamcluster unpaused
+2026-05-16T18:46:28.150370 unpause streamcluster
 2026-05-16T18:46:28.174475 update_cores streamcluster [2]
 2026-05-16T18:46:32.953913 update_cores memcached [0,1,2]
-2026-05-16T18:46:32.989874 custom streamcluster paused
+2026-05-16T18:46:32.989874 pause streamcluster
 2026-05-16T18:46:37.127072 update_cores memcached [0,1]
-2026-05-16T18:46:37.145207 custom streamcluster unpaused
+2026-05-16T18:46:37.145207 unpause streamcluster
 2026-05-16T18:46:37.170006 update_cores streamcluster [2]
 2026-05-16T18:46:41.208216 update_cores memcached [0,1,2]
-2026-05-16T18:46:41.246516 custom streamcluster paused
+2026-05-16T18:46:41.246516 pause streamcluster
 2026-05-16T18:46:46.104597 update_cores memcached [0,1]
-2026-05-16T18:46:46.120217 custom streamcluster unpaused
+2026-05-16T18:46:46.120217 unpause streamcluster
 2026-05-16T18:46:46.142115 update_cores streamcluster [2]
 2026-05-16T18:46:59.181573 update_cores memcached [0,1,2]
-2026-05-16T18:46:59.213227 custom streamcluster paused
+2026-05-16T18:46:59.213227 pause streamcluster
 2026-05-16T18:47:22.056039 update_cores memcached [0,1]
-2026-05-16T18:47:22.075879 custom streamcluster unpaused
+2026-05-16T18:47:22.075879 unpause streamcluster
 2026-05-16T18:47:22.103154 update_cores streamcluster [2]
 2026-05-16T18:47:29.313449 update_cores memcached [0,1,2]
-2026-05-16T18:47:29.349085 custom streamcluster paused
+2026-05-16T18:47:29.349085 pause streamcluster
 2026-05-16T18:47:49.077691 update_cores memcached [0,1]
-2026-05-16T18:47:49.095033 custom streamcluster unpaused
+2026-05-16T18:47:49.095033 unpause streamcluster
 2026-05-16T18:47:49.117195 update_cores streamcluster [2]
 2026-05-16T18:47:59.226823 update_cores memcached [0,1,2]
-2026-05-16T18:47:59.265805 custom streamcluster paused
+2026-05-16T18:47:59.265805 pause streamcluster
 2026-05-16T18:48:36.968215 update_cores memcached [0,1]
-2026-05-16T18:48:36.985951 custom streamcluster unpaused
+2026-05-16T18:48:36.985951 unpause streamcluster
 2026-05-16T18:48:37.011913 update_cores streamcluster [2]
 2026-05-16T18:49:11.362798 update_cores memcached [0,1,2]
-2026-05-16T18:49:11.397857 custom streamcluster paused
+2026-05-16T18:49:11.397857 pause streamcluster
 2026-05-16T18:49:16.044822 update_cores memcached [0,1]
-2026-05-16T18:49:16.059605 custom streamcluster unpaused
+2026-05-16T18:49:16.059605 unpause streamcluster
 2026-05-16T18:49:16.080833 update_cores streamcluster [2]
 2026-05-16T18:49:35.180423 update_cores memcached [0,1,2]
-2026-05-16T18:49:35.227431 custom streamcluster paused
+2026-05-16T18:49:35.227431 pause streamcluster
 2026-05-16T18:49:55.075839 update_cores memcached [0,1]
-2026-05-16T18:49:55.093196 custom streamcluster unpaused
+2026-05-16T18:49:55.093196 unpause streamcluster
 2026-05-16T18:49:55.117153 update_cores streamcluster [2]
 2026-05-16T18:50:02.570488 update_cores memcached [0,1,2]
-2026-05-16T18:50:02.604471 custom streamcluster paused
+2026-05-16T18:50:02.604471 pause streamcluster
 2026-05-16T18:50:09.825983 update_cores memcached [0,1]
-2026-05-16T18:50:09.843133 custom streamcluster unpaused
+2026-05-16T18:50:09.843133 unpause streamcluster
 2026-05-16T18:50:09.867893 update_cores streamcluster [2]
 2026-05-16T18:50:23.196694 update_cores memcached [0,1,2]
-2026-05-16T18:50:23.244234 custom streamcluster paused
+2026-05-16T18:50:23.244234 pause streamcluster
 2026-05-16T18:50:28.110367 update_cores memcached [0,1]
-2026-05-16T18:50:28.126602 custom streamcluster unpaused
+2026-05-16T18:50:28.126602 unpause streamcluster
 2026-05-16T18:50:28.149601 update_cores streamcluster [2]
 2026-05-16T18:51:14.389425 update_cores memcached [0,1,2]
-2026-05-16T18:51:14.415722 custom streamcluster paused
+2026-05-16T18:51:14.415722 pause streamcluster
 2026-05-16T18:51:22.072891 update_cores memcached [0,1]
-2026-05-16T18:51:22.088980 custom streamcluster unpaused
+2026-05-16T18:51:22.088980 unpause streamcluster
 2026-05-16T18:51:22.111628 update_cores streamcluster [2]
 2026-05-16T18:51:35.434718 update_cores memcached [0,1,2]
-2026-05-16T18:51:35.463165 custom streamcluster paused
+2026-05-16T18:51:35.463165 pause streamcluster
 2026-05-16T18:51:43.105658 update_cores memcached [0,1]
-2026-05-16T18:51:43.123592 custom streamcluster unpaused
+2026-05-16T18:51:43.123592 unpause streamcluster
 2026-05-16T18:51:43.149048 update_cores streamcluster [2]
 2026-05-16T18:51:45.737032 end streamcluster
 2026-05-16T18:51:45.771878 update_cores memcached [0,1,2,3]
